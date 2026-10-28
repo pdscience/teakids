@@ -3,8 +3,8 @@ import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAppStore } from '../stores/app';
 import type { ConversationCategory } from '../types/models';
-import { getConversationItems, withAlpha } from '../data/conversation';
-import { getConversationEntryId } from '../data/communication';
+import { getAllConversationCategories, getConversationItems, withAlpha } from '../data/conversation';
+import { useI18n } from '../i18n/useI18n';
 
 const props = defineProps<{
   category: string;
@@ -12,6 +12,7 @@ const props = defineProps<{
 
 const store = useAppStore();
 const route = useRoute();
+const { t, locale } = useI18n();
 
 const categoryId = computed(() => props.category || (route.params.category as string));
 
@@ -24,9 +25,10 @@ interface DisplayItem {
 
 const conversationItems = computed<DisplayItem[]>(() => {
   const baseItems = getConversationItems(
-    categoryId.value as ConversationCategory
+    categoryId.value as ConversationCategory,
+    locale.value
   ).map((item) => ({
-    id: getConversationEntryId(item),
+    id: item.id,
     icon: item.icon,
     text: item.text,
     color: item.color,
@@ -44,17 +46,17 @@ const conversationItems = computed<DisplayItem[]>(() => {
   return [...baseItems, ...customItems];
 });
 
-const categoryTitles: Record<string, { title: string; icon: string; color: string }> = {
-  greetings: { title: 'Saudações', icon: '👋', color: '#4D94FF' },
-  needs: { title: 'Necessidades', icon: '🍎', color: '#FF6B35' },
-  health: { title: 'Saúde', icon: '❤️', color: '#FF1744' },
-  activities: { title: 'Atividades', icon: '⚽', color: '#00C853' },
-  family: { title: 'Família', icon: '👨‍👩‍👧', color: '#B24BF3' },
-  places: { title: 'Locais', icon: '🏠', color: '#00BCD4' },
-};
-
 const categoryInfo = computed(() => {
-  return categoryTitles[categoryId.value] || { title: 'Conversar', icon: '💬', color: '#4D94FF' };
+  const category = getAllConversationCategories(locale.value).find(
+    (item) => item.id === categoryId.value
+  );
+
+  return category ?? {
+    id: categoryId.value,
+    name: t('conversation.fallbackTitle'),
+    icon: '💬',
+    color: '#4D94FF',
+  };
 });
 
 const speakingIndex = ref<number | null>(null);
@@ -97,15 +99,15 @@ const toggleFavorite = (index: number) => {
 <template>
   <div class="category-screen">
     <header class="screen-header">
-      <h1 class="screen-title">{{ categoryInfo.icon }} {{ categoryInfo.title }}</h1>
-      <p class="screen-subtitle">Toque nos cartões para falar</p>
+      <h1 class="screen-title">{{ categoryInfo.icon }} {{ categoryInfo.name }}</h1>
+      <p class="screen-subtitle">{{ t('conversation.categorySubtitle') }}</p>
     </header>
 
     <main class="items-content">
       <div class="items-grid">
         <div
           v-for="(item, index) in conversationItems"
-          :key="index"
+          :key="item.id"
           class="conversation-card"
           :class="{ speaking: speakingIndex === index }"
           :style="{ 
@@ -116,7 +118,7 @@ const toggleFavorite = (index: number) => {
           <button
             class="card-speak"
             :aria-pressed="speakingIndex === index"
-            :aria-label="`Falar: ${item.text}`"
+            :aria-label="t('common.speakAria', { text: item.text })"
             @click="speak(index)"
           >
             <span class="card-icon" :class="{ bounce: speakingIndex === index }">{{ item.icon }}</span>
@@ -136,7 +138,14 @@ const toggleFavorite = (index: number) => {
             class="favorite-btn"
             :class="{ active: isFavorite(index) }"
             :aria-pressed="isFavorite(index)"
-            :aria-label="`${isFavorite(index) ? 'Remover dos' : 'Adicionar aos'} favoritos: ${item.text}`"
+            :aria-label="
+              t(
+                isFavorite(index)
+                  ? 'conversation.removeFavoriteAria'
+                  : 'conversation.addFavoriteAria',
+                { text: item.text }
+              )
+            "
             @click="toggleFavorite(index)"
           >
             {{ isFavorite(index) ? '★' : '☆' }}

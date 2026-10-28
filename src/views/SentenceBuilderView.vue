@@ -2,11 +2,14 @@
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppStore } from '../stores/app';
-import { coreVocabulary, type CoreWord } from '../data/coreVocabulary';
+import { getCoreVocabulary, type CoreWord } from '../data/coreVocabulary';
 import { buildSentence } from '../utils/sentence';
+import { useI18n } from '../i18n/useI18n';
 
 const router = useRouter();
 const store = useAppStore();
+const { t, locale } = useI18n();
+const vocabulary = computed(() => getCoreVocabulary(locale.value));
 
 const selected = ref<CoreWord[]>([]);
 
@@ -39,26 +42,22 @@ const goBack = () => {
 <template>
   <div class="builder-screen">
     <header class="screen-header">
-      <button class="back-btn" aria-label="Voltar para conversar" @click="goBack">
-        ←
-      </button>
+      <button class="back-btn" :aria-label="t('builder.backAria')" @click="goBack">←</button>
       <div>
-        <h1 class="screen-title">Montar frase</h1>
-        <p class="screen-subtitle">Toque nas palavras para montar o que quer dizer</p>
+        <h1 class="screen-title">{{ t('builder.title') }}</h1>
+        <p class="screen-subtitle">{{ t('builder.subtitle') }}</p>
       </div>
     </header>
 
     <main class="builder-content">
       <section class="sentence-card" aria-live="polite">
-        <p v-if="!selected.length" class="empty-sentence">
-          Toque nas palavras abaixo para começar.
-        </p>
+        <p v-if="!selected.length" class="empty-sentence">{{ t('builder.empty') }}</p>
         <div v-else class="selected-words">
           <button
             v-for="(word, index) in selected"
             :key="`${word.id}-${index}`"
             class="selected-word"
-            :aria-label="`Remover ${word.label}`"
+            :aria-label="t('builder.removeAria', { word: word.label })"
             @click="removeWord(index)"
           >
             <span class="word-icon">{{ word.icon }}</span>
@@ -71,22 +70,22 @@ const goBack = () => {
 
         <div class="sentence-actions">
           <button class="action-btn clear" @click="clearSentence" :disabled="!selected.length">
-            Limpar
+            {{ t('common.clear') }}
           </button>
           <button class="action-btn speak" :disabled="!canSpeak" @click="speakSentence">
-            🔊 Falar frase
+            {{ t('builder.speak') }}
           </button>
         </div>
       </section>
 
       <section class="vocabulary-section">
-        <h2 class="section-title">Palavras</h2>
+        <h2 class="section-title">{{ t('builder.words') }}</h2>
         <div class="vocabulary-grid">
           <button
-            v-for="word in coreVocabulary"
+            v-for="word in vocabulary"
             :key="word.id"
             class="word-card"
-            :aria-label="`Adicionar ${word.label}`"
+            :aria-label="t('builder.addAria', { word: word.label })"
             @click="addWord(word)"
           >
             <span class="word-card-icon">{{ word.icon }}</span>

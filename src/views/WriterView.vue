@@ -2,9 +2,11 @@
 import { computed, onUnmounted } from 'vue';
 import { useAppStore } from '../stores/app';
 import { getAlphabetItems } from '../data/alphabet';
+import { useI18n } from '../i18n/useI18n';
 
 const store = useAppStore();
-const alphabetItems = getAlphabetItems();
+const { t, locale } = useI18n();
+const alphabetItems = computed(() => getAlphabetItems(locale.value));
 
 const writerText = computed({
   get: () => store.writerText,
@@ -28,7 +30,7 @@ const speakText = () => {
 };
 
 const speakLetter = (letter: string, word: string) => {
-  store.speakText(`${letter} de ${word}`);
+  store.speakText(t('writer.letterWord', { letter, word }));
 };
 
 const clearText = () => {
@@ -44,10 +46,10 @@ onUnmounted(() => {
   <div class="writer-screen">
     <header class="screen-header">
       <div class="header-top">
-        <h1 class="screen-title">Escrever</h1>
-        <button class="clear-btn" @click="clearText" aria-label="Limpar texto">🗑️</button>
+        <h1 class="screen-title">{{ t('writer.title') }}</h1>
+        <button class="clear-btn" @click="clearText" :aria-label="t('writer.clearAria')">🗑️</button>
       </div>
-      <p class="screen-subtitle">Escreva e eu falo:</p>
+      <p class="screen-subtitle">{{ t('writer.subtitle') }}</p>
     </header>
 
     <main class="writer-content">
@@ -56,7 +58,7 @@ onUnmounted(() => {
         <textarea
           v-model="writerText"
           class="text-input"
-          placeholder="Digite algo e eu falo..."
+          :placeholder="t('writer.placeholder')"
           rows="4"
           maxlength="500"
         ></textarea>
@@ -68,26 +70,26 @@ onUnmounted(() => {
           @click="speakText"
         >
           <span class="btn-icon">🔊</span>
-          <span class="btn-text">Falar texto</span>
+          <span class="btn-text">{{ t('writer.speak') }}</span>
         </button>
       </div>
 
       <!-- Tip -->
       <div class="tip-card">
         <span class="tip-icon">💡</span>
-        <span class="tip-text">Dica: Use frases curtas para melhor compreensão</span>
+        <span class="tip-text">{{ t('writer.tip') }}</span>
       </div>
 
       <!-- Alphabet Section -->
       <div class="alphabet-section">
-        <h2 class="section-title">Alfabeto:</h2>
+        <h2 class="section-title">{{ t('writer.alphabet') }}</h2>
         
         <div class="alphabet-grid">
           <button
             v-for="item in alphabetItems"
             :key="item.letter"
             class="alphabet-item"
-            :aria-label="`Letra ${item.letter}, ${item.word}`"
+            :aria-label="t('writer.letterAria', { letter: item.letter, word: item.word })"
             :style="{ borderColor: getItemColor(item.letter) + '80' }"
             @click="speakLetter(item.letter, item.word)"
           >

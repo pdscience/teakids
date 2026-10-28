@@ -3,25 +3,32 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppStore } from '../stores/app';
 import { getAllConversationCategories } from '../data/conversation';
-import { quickPhrases } from '../data/quickPhrases';
+import { getQuickPhrases } from '../data/quickPhrases';
 import {
   getCommunicationEntry,
   type CommunicationEntry,
 } from '../data/communication';
+import { useI18n } from '../i18n/useI18n';
 
 const router = useRouter();
 const store = useAppStore();
-const categories = getAllConversationCategories();
+const { t, locale } = useI18n();
 
-const quickEntries: CommunicationEntry[] = quickPhrases.map((phrase) => ({
-  ...phrase,
-  category: 'quick',
-}));
+const categories = computed(() =>
+  getAllConversationCategories(locale.value)
+);
+
+const quickEntries = computed<CommunicationEntry[]>(() =>
+  getQuickPhrases(locale.value).map((phrase) => ({
+    ...phrase,
+    category: 'quick',
+  }))
+);
 
 const resolveEntries = (ids: string[], limit = 20): CommunicationEntry[] =>
   ids
     .slice(0, limit)
-    .map((id) => getCommunicationEntry(id))
+    .map((id) => getCommunicationEntry(id, locale.value))
     .filter((entry): entry is CommunicationEntry => entry !== undefined);
 
 const favoriteEntries = computed(() => resolveEntries(store.favoriteIds));
@@ -46,18 +53,16 @@ const openBuilder = () => {
     <header class="screen-header">
       <div class="header-top">
         <div>
-          <h1 class="screen-title">Conversar</h1>
-          <p class="screen-subtitle">Escolha uma categoria ou use uma frase rápida</p>
+          <h1 class="screen-title">{{ t('conversation.title') }}</h1>
+          <p class="screen-subtitle">{{ t('conversation.subtitle') }}</p>
         </div>
-        <button class="builder-btn" @click="openBuilder">
-          🧩 Montar frase
-        </button>
+        <button class="builder-btn" @click="openBuilder">{{ t('conversation.builder') }}</button>
       </div>
     </header>
 
     <main class="conversation-content">
       <section class="quick-section">
-        <h2 class="section-title">Frases rápidas</h2>
+        <h2 class="section-title">{{ t('conversation.quick') }}</h2>
         <div class="quick-grid">
           <button
             v-for="entry in quickEntries"
@@ -67,7 +72,7 @@ const openBuilder = () => {
               borderColor: entry.color + '99',
               backgroundColor: entry.color + '18',
             }"
-            :aria-label="`Falar: ${entry.text}`"
+            :aria-label="t('common.speakAria', { text: entry.text })"
             @click="speakEntry(entry)"
           >
             <span class="quick-icon">{{ entry.icon }}</span>
@@ -77,14 +82,14 @@ const openBuilder = () => {
       </section>
 
       <section v-if="favoriteEntries.length" class="lists-section">
-        <h2 class="section-title">⭐ Favoritos</h2>
+        <h2 class="section-title">{{ t('conversation.favorites') }}</h2>
         <div class="horizontal-list">
           <button
             v-for="entry in favoriteEntries"
             :key="entry.id"
             class="mini-card"
             :style="{ borderColor: entry.color + '80' }"
-            :aria-label="`Falar: ${entry.text}`"
+            :aria-label="t('common.speakAria', { text: entry.text })"
             @click="speakEntry(entry)"
           >
             <span class="mini-icon">{{ entry.icon }}</span>
@@ -94,14 +99,14 @@ const openBuilder = () => {
       </section>
 
       <section v-if="recentEntries.length" class="lists-section">
-        <h2 class="section-title">🕘 Recentes</h2>
+        <h2 class="section-title">{{ t('conversation.recents') }}</h2>
         <div class="horizontal-list">
           <button
             v-for="entry in recentEntries"
             :key="entry.id"
             class="mini-card"
             :style="{ borderColor: entry.color + '80' }"
-            :aria-label="`Falar: ${entry.text}`"
+            :aria-label="t('common.speakAria', { text: entry.text })"
             @click="speakEntry(entry)"
           >
             <span class="mini-icon">{{ entry.icon }}</span>
@@ -111,7 +116,7 @@ const openBuilder = () => {
       </section>
 
       <section class="categories-section">
-        <h2 class="section-title">Categorias</h2>
+        <h2 class="section-title">{{ t('conversation.categories') }}</h2>
         <div class="categories-grid">
           <button
             v-for="category in categories"
