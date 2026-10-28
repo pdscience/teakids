@@ -2,17 +2,20 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppStore } from '../stores/app';
+import { useI18n } from '../i18n/useI18n';
 import logoUrl from '../assets/TEA Kids.png';
 
 const router = useRouter();
 const store = useAppStore();
 
-const features = [
-  { title: 'Conversar', description: 'Categorias de comunicação', icon: '💬', color: '#4D94FF', route: '/conversation' },
-  { title: 'Rotinas', description: 'Checklists diários', icon: '📅', color: '#FFB84D', route: '/routines' },
-  { title: 'Escrever', description: 'Digitar e falar', icon: '✏️', color: '#A78BFA', route: '/writer' },
-  { title: 'Interação', description: 'Aprender cores e formas', icon: '🎮', color: '#4DFF88', route: '/interactive' },
-];
+const { t } = useI18n();
+
+const features = computed(() => [
+  { title: t('home.featureConversationTitle'), description: t('home.featureConversationDescription'), icon: '💬', color: '#4D94FF', route: '/conversation' },
+  { title: t('home.featureRoutinesTitle'), description: t('home.featureRoutinesDescription'), icon: '📅', color: '#FFB84D', route: '/routines' },
+  { title: t('home.featureWriterTitle'), description: t('home.featureWriterDescription'), icon: '✏️', color: '#A78BFA', route: '/writer' },
+  { title: t('home.featureInteractiveTitle'), description: t('home.featureInteractiveDescription'), icon: '🎮', color: '#4DFF88', route: '/interactive' },
+]);
 
 const navigateTo = (route: string) => {
   router.push(route);
@@ -23,36 +26,11 @@ const openParentArea = () => {
 };
 
 const achievements = computed(() => [
-  {
-    key: 'morningRoutine',
-    label: 'Rotina da Manhã',
-    icon: '🌅',
-    unlocked: store.dailyAchievements.morningRoutine,
-  },
-  {
-    key: 'afternoonRoutine',
-    label: 'Rotina da Tarde',
-    icon: '☀️',
-    unlocked: store.dailyAchievements.afternoonRoutine,
-  },
-  {
-    key: 'nightRoutine',
-    label: 'Rotina da Noite',
-    icon: '🌙',
-    unlocked: store.dailyAchievements.nightRoutine,
-  },
-  {
-    key: 'usedConversation',
-    label: 'Conversar',
-    icon: '💬',
-    unlocked: store.dailyAchievements.usedConversation,
-  },
-  {
-    key: 'quizStreak',
-    label: 'Quiz Champion',
-    icon: '🎯',
-    unlocked: store.dailyAchievements.quizStreak,
-  },
+  { key: 'morningRoutine', label: t('home.achievementMorning'), icon: '🌅', unlocked: store.dailyAchievements.morningRoutine },
+  { key: 'afternoonRoutine', label: t('home.achievementAfternoon'), icon: '☀️', unlocked: store.dailyAchievements.afternoonRoutine },
+  { key: 'nightRoutine', label: t('home.achievementNight'), icon: '🌙', unlocked: store.dailyAchievements.nightRoutine },
+  { key: 'usedConversation', label: t('home.achievementConversation'), icon: '💬', unlocked: store.dailyAchievements.usedConversation },
+  { key: 'quizStreak', label: t('home.achievementQuiz'), icon: '🎯', unlocked: store.dailyAchievements.quizStreak },
 ]);
 
 const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).length);
@@ -61,10 +39,10 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
 <template>
   <div class="home-screen">
     <header class="app-header">
-      <h1 class="welcome-title">Sejam bem-vindos(as)!💙</h1>
+      <h1 class="welcome-title">{{ t('home.welcome') }}</h1>
       <button
         class="parent-btn"
-        aria-label="Abrir área dos responsáveis"
+        :aria-label="t('home.parentAria')"
         @click="openParentArea"
       >⚙️</button>
     </header>
@@ -80,7 +58,7 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
         <!-- Daily Stars Card -->
         <div class="stars-card">
           <div class="stars-header">
-            <span class="stars-title">⭐ Estrelas de Hoje</span>
+            <span class="stars-title">{{ t('home.starsTitle') }}</span>
             <span class="stars-count" :class="{ full: unlockedCount === 5 }">
               {{ unlockedCount }}/5
             </span>
@@ -92,31 +70,32 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
               class="star-item"
               :class="{ unlocked: achievement.unlocked }"
               :title="achievement.label"
-              :aria-label="`${achievement.label}: ${achievement.unlocked ? 'conquistada' : 'pendente'}`"
+              :aria-label="t('home.achievementStatus', {
+                label: achievement.label,
+                status: achievement.unlocked
+                  ? t('home.achievementUnlocked')
+                  : t('home.achievementPending'),
+              })"
             >
               <span class="star-icon">{{ achievement.icon }}</span>
               <span class="star-label">{{ achievement.label }}</span>
               <span class="star-badge" :class="{ lit: achievement.unlocked }">⭐</span>
             </div>
           </div>
-          <p v-if="unlockedCount === 5" class="all-stars-msg">
-            🏆 Você conquistou todas as estrelas hoje!
-          </p>
+          <p v-if="unlockedCount === 5" class="all-stars-msg">{{ t('home.allStars') }}</p>
         </div>
 
         <div class="description-card">
-          <p class="description-text">
-            Abrace o autismo e crie um mundo mais azul, um mundo com mais inclusão.
-          </p>
+          <p class="description-text">{{ t('home.description') }}</p>
           
           <div class="divider"></div>
           
-          <p class="nav-hint">Use a navegação abaixo para explorar:</p>
+          <p class="nav-hint">{{ t('home.navHint') }}</p>
 
           <div class="features-list">
             <button
               v-for="feature in features"
-              :key="feature.title"
+              :key="feature.route"
               class="feature-item"
               @click="navigateTo(feature.route)"
             >
@@ -130,8 +109,7 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
           </div>
         </div>
 
-        <p class="footer-message">
-        </p>
+        <p class="footer-message">{{ t('home.footer') }}</p>
       </div>
     </main>
   </div>
@@ -315,7 +293,7 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
 }
 
 .description-text {
-  color: #ccc;
+  color: #ffffff;
   font-size: 18px;
   line-height: 1.5;
   text-align: center;
@@ -328,7 +306,7 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
 }
 
 .nav-hint {
-  color: #888;
+  color: #ffffff;
   font-size: 16px;
   font-weight: bold;
   text-align: center;
@@ -387,7 +365,7 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
 }
 
 .footer-message {
-  color: #888;
+  color: #ffffff;
   font-size: 20px;
   font-weight: 500;
   text-align: center;

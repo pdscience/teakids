@@ -1,12 +1,25 @@
 <script setup lang="ts">
-import { onMounted, ref, onBeforeUnmount } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue';
 import { useAppStore } from './stores/app';
 import { useRouter, useRoute } from 'vue-router';
-import { computed } from 'vue';
+import { useI18n } from './i18n/useI18n';
 
 const store = useAppStore();
 const router = useRouter();
 const route = useRoute();
+const { t } = useI18n();
+
+watchEffect(() => {
+  document.title = t('app.documentTitle');
+});
+
+const navItems = computed(() => [
+  { name: t('nav.home'), icon: '🏠', route: '/home', tab: 'home' },
+  { name: t('nav.conversation'), icon: '💬', route: '/conversation', tab: 'conversation' },
+  { name: t('nav.routines'), icon: '📅', route: '/routines', tab: 'routines' },
+  { name: t('nav.writer'), icon: '✏️', route: '/writer', tab: 'writer' },
+  { name: t('nav.interactive'), icon: '🎮', route: '/interactive', tab: 'interactive' },
+]);
 
 let deferredPrompt: BeforeInstallPromptEvent | null = null;
 let dayCheckInterval: ReturnType<typeof setInterval> | null = null;
@@ -80,14 +93,6 @@ onBeforeUnmount(() => {
   }
 });
 
-const navItems = [
-  { name: 'Início', icon: '🏠', route: '/home', tab: 'home' },
-  { name: 'Conversar', icon: '💬', route: '/conversation', tab: 'conversation' },
-  { name: 'Rotinas', icon: '📅', route: '/routines', tab: 'routines' },
-  { name: 'Escrever', icon: '✏️', route: '/writer', tab: 'writer' },
-  { name: 'Interação', icon: '🎮', route: '/interactive', tab: 'interactive' },
-];
-
 const currentPath = computed(() => route.path);
 
 const navigateTo = (path: string) => {
@@ -102,9 +107,9 @@ const navigateTo = (path: string) => {
         <div class="loading-logo">
           <span class="logo-icon">🧠</span>
         </div>
-        <h1 class="loading-title">TEA Kids</h1>
+        <h1 class="loading-title">{{ t('app.title') }}</h1>
         <div class="loading-spinner"></div>
-        <p class="loading-text">Carregando...</p>
+        <p class="loading-text">{{ t('app.loading') }}</p>
       </div>
     </div>
 
@@ -113,12 +118,12 @@ const navigateTo = (path: string) => {
         <div v-if="showInstall" class="install-banner">
           <span class="install-icon">📲</span>
           <div class="install-text">
-            <strong>Instalar TEA Kids</strong>
-            <small v-if="!isIOS">Adicione à tela inicial para usar como app.</small>
-            <small v-else>No iOS, toque em "Compartilhar" e "Adicionar à Tela de Início".</small>
+            <strong>{{ t('app.installTitle') }}</strong>
+            <small v-if="!isIOS">{{ t('app.installHint') }}</small>
+            <small v-else>{{ t('app.installIosHint') }}</small>
           </div>
-          <button v-if="!isIOS" class="install-btn" @click="installApp">Instalar</button>
-          <button class="install-close" @click="dismissInstall" aria-label="Fechar">✕</button>
+          <button v-if="!isIOS" class="install-btn" @click="installApp">{{ t('app.install') }}</button>
+          <button class="install-close" @click="dismissInstall" :aria-label="t('app.close')">✕</button>
         </div>
       </transition>
 
@@ -126,7 +131,7 @@ const navigateTo = (path: string) => {
         <div v-if="store.systemWarning" class="warning-banner" role="status">
           <span class="warning-icon">⚠️</span>
           <span class="warning-text">{{ store.systemWarning }}</span>
-          <button class="warning-close" @click="store.dismissSystemWarning" aria-label="Fechar aviso">✕</button>
+          <button class="warning-close" @click="store.dismissSystemWarning" :aria-label="t('app.closeWarning')">✕</button>
         </div>
 
         <router-view v-slot="{ Component }">
