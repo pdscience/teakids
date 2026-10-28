@@ -38,6 +38,7 @@ export interface RoutineProgress {
 
 // Conversation Models
 export interface ConversationItem {
+  id: string;
   icon: string;
   text: string;
   category: string;

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { getColor, withAlpha } from './conversation';
+import {
+  CONVERSATION_CATEGORIES,
+  getAllConversationCategories,
+  getColor,
+  getConversationItems,
+  withAlpha,
+} from './conversation';
+import { slugify } from '../utils/slug';
 
 describe('getColor', () => {
   it('maps named colors to valid hex values', () => {
@@ -23,5 +30,30 @@ describe('withAlpha', () => {
 
   it('resolves named colors before appending the alpha suffix', () => {
     expect(withAlpha('yellow', '99')).toBe('#FFEB3B99');
+  });
+});
+
+describe('localized conversation items', () => {
+  it('keeps the same id across locales', () => {
+    const pt = getConversationItems('greetings', 'pt-BR').find((item) => item.text === 'Olá');
+    const en = getConversationItems('greetings', 'en-US').find((item) => item.id === pt?.id);
+    const es = getConversationItems('greetings', 'es-ES').find((item) => item.id === pt?.id);
+
+    expect(pt?.id).toBe('greetings:ola');
+    expect(en?.text).toBe('Hello');
+    expect(es?.text).toBe('Hola');
+  });
+
+  it('localizes every category name', () => {
+    const categories = getAllConversationCategories('en-US');
+    expect(categories.find((category) => category.id === 'needs')?.name).toBe('Needs');
+  });
+
+  it('preserves every legacy conversation id', () => {
+    for (const category of CONVERSATION_CATEGORIES) {
+      for (const item of getConversationItems(category, 'pt-BR')) {
+        expect(item.id).toBe(`${category}:${slugify(item.text)}`);
+      }
+    }
   });
 });

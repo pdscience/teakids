@@ -1,6 +1,7 @@
 import type { ConversationItem, CustomConversationCard } from '../types/models';
 import { conversationData } from './conversation';
 import { quickPhrases } from './quickPhrases';
+import { slugify } from '../utils/slug';
 
 export interface CommunicationEntry {
   id: string;
@@ -8,15 +9,6 @@ export interface CommunicationEntry {
   text: string;
   color: string;
   category: string;
-}
-
-export function slugify(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
 }
 
 export function getConversationEntryId(item: ConversationItem): string {
