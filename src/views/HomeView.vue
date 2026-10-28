@@ -109,7 +109,8 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
           </div>
         </div>
 
-        <p class="footer-message">{{ t('home.footer') }}</p>
+        <p class="footer-message">
+        </p>
       </div>
     </main>
   </div>
@@ -355,7 +356,7 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
 }
 
 .feature-description {
-  color: #888;
+  color: #ffffff;
   font-size: 13px;
 }
 
