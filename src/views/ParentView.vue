@@ -701,6 +701,7 @@ const resetAll = async () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 
 .panel {
@@ -708,6 +709,7 @@ const resetAll = async () => {
   border: 2px solid rgba(77, 148, 255, 0.2);
   border-radius: 20px;
   padding: 18px;
+  min-width: 0;
 }
 
 .panel-title {
@@ -856,7 +858,7 @@ const resetAll = async () => {
 
 .card-form {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-top: 12px;
 }
@@ -865,6 +867,7 @@ const resetAll = async () => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
   color: #ccc;
   font-size: 13px;
 }
@@ -875,12 +878,16 @@ const resetAll = async () => {
 
 .field input,
 .field select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   padding: 10px;
   border: 2px solid rgba(77, 148, 255, 0.3);
   border-radius: 10px;
   background: #050510;
   color: white;
   font-size: 14px;
+  text-overflow: ellipsis;
 }
 
 .field input[type='color'] {
@@ -948,5 +955,23 @@ const resetAll = async () => {
   background: #4D94FF;
   border-color: #4D94FF;
   color: white;
+}
+
+@media (max-width: 520px) {
+  .parent-content {
+    padding: 0 10px 24px;
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  .card-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .history-periods {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 </style>
