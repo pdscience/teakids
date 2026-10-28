@@ -49,4 +49,13 @@ describe('parseSettings', () => {
       true
     );
   });
+
+  it('keeps a supported language', () => {
+    expect(parseSettings(JSON.stringify({ language: 'en-US' })).language).toBe('en-US');
+  });
+
+  it('defaults an invalid or missing language to pt-BR', () => {
+    expect(parseSettings(JSON.stringify({ language: 'fr-FR' })).language).toBe('pt-BR');
+    expect(parseSettings(JSON.stringify({})).language).toBe('pt-BR');
+  });
 });

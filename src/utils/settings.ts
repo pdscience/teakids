@@ -1,4 +1,7 @@
+import { DEFAULT_LOCALE, isLocale, type Locale } from '../i18n/types';
+
 export interface AppSettings {
+  language: Locale;
   speechRate: number;
   speechPitch: number;
   soundEnabled: boolean;
@@ -8,6 +11,7 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
+  language: DEFAULT_LOCALE,
   speechRate: 0.9,
   speechPitch: 1,
   soundEnabled: true,
@@ -54,6 +58,7 @@ export function parseSettings(raw: string | null): AppSettings {
   const data = parsed as Record<string, unknown>;
 
   return {
+    language: isLocale(data.language) ? data.language : DEFAULT_SETTINGS.language,
     speechRate: numberOrDefault(
       data.speechRate,
       DEFAULT_SETTINGS.speechRate,

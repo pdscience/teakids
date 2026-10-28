@@ -16,6 +16,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const apply = () => {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
+    root.lang = settings.value.language;
     root.classList.toggle('reduce-motion', settings.value.reduceMotion);
     root.classList.toggle('large-text', settings.value.largeText);
     root.classList.toggle('high-contrast', settings.value.highContrast);
