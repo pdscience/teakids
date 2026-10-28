@@ -1,5 +1,8 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { useI18n } from '../i18n/useI18n';
+import { LOCALE_LABELS } from '../i18n/types';
+import type { MessageKey } from '../i18n/messages';
 import type {
   ConversationCategory,
   CustomConversationCard,
@@ -85,13 +88,21 @@ const saveDailyAchievements = async (data: Record<AchievementKey, boolean>) => {
 
 export const useAppStore = defineStore('app', () => {
   // TTS
+  const { t, locale, speechLocale } = useI18n();
   const { speak: ttsSpeak, stop: ttsStop, initialize: ttsInitialize, isInitialized: isTtsInitialized } = useTts();
   const { loadAllRoutineProgress, saveRoutineProgress, clearRoutineProgress } = useStorage();
   const settingsStore = useSettingsStore();
 
   // App state
   const isLoading = ref(true);
-  const systemWarning = ref('');
+  const systemWarningKey = ref<MessageKey | ''>('');
+  const systemWarning = computed(() =>
+    systemWarningKey.value
+      ? t(systemWarningKey.value, {
+          language: LOCALE_LABELS[locale.value],
+        })
+      : ''
+  );
 
   // Conversation state
   const currentConversationTab = ref<ConversationCategory>('greetings');
@@ -125,12 +136,12 @@ export const useAppStore = defineStore('app', () => {
   const quizCorrectStreak = ref(0);
 
   const dismissSystemWarning = () => {
-    systemWarning.value = '';
+    systemWarningKey.value = '';
   };
 
   const getRoutineItemsForPeriod = (period: string): RoutineItem[] =>
     mergeRoutineItems(
-      getRoutineItems(period),
+      getRoutineItems(period, settingsStore.settings.language),
       getActiveCustomRoutineItems(
         customRoutineItems.value,
         period as RoutinePeriod
@@ -152,14 +163,16 @@ export const useAppStore = defineStore('app', () => {
 
     const databaseError = getDatabaseError();
     if (databaseError) {
-      systemWarning.value = 'Não foi possível acessar o banco de dados. O progresso será salvo localmente.';
+      systemWarningKey.value = 'app.warningDb';
     }
 
     try {
       await settingsStore.load();
-      await ttsInitialize();
+      const exactVoice = await ttsInitialize(settingsStore.settings.language);
       if (!isTtsInitialized.value) {
-        systemWarning.value = 'A voz não está disponível neste dispositivo.';
+        systemWarningKey.value = 'app.warningVoice';
+      } else if (!exactVoice) {
+        systemWarningKey.value = 'app.warningVoiceLanguage';
       }
       dailyAchievements.value = await loadDailyAchievements();
       favoriteIds.value = parseIds(await dbGetSetting(FAVORITES_KEY));
@@ -177,7 +190,7 @@ export const useAppStore = defineStore('app', () => {
       }
       setCustomCommunicationEntries(customCards.value);
     } catch {
-      systemWarning.value = 'Não foi possível carregar os dados salvos.';
+      systemWarningKey.value = 'app.warningLoad';
     } finally {
       isLoading.value = false;
     }
@@ -254,6 +267,7 @@ export const useAppStore = defineStore('app', () => {
     isSpeaking.value = true;
     speakingText.value = text;
     await ttsSpeak(text, {
+      lang: speechLocale.value,
       rate: settingsStore.settings.speechRate,
       pitch: settingsStore.settings.speechPitch,
     });
@@ -269,6 +283,24 @@ export const useAppStore = defineStore('app', () => {
     await ttsStop();
     isSpeaking.value = false;
     speakingText.value = '';
+  };
+
+  const prepareVoice = async (): Promise<boolean> => {
+    await stopSpeaking();
+    const exactVoice = await ttsInitialize(settingsStore.settings.language);
+
+    if (!isTtsInitialized.value) {
+      systemWarningKey.value = 'app.warningVoice';
+      return false;
+    }
+
+    if (!exactVoice) {
+      systemWarningKey.value = 'app.warningVoiceLanguage';
+      return false;
+    }
+
+    systemWarningKey.value = '';
+    return true;
   };
 
   // Communication preferences
@@ -415,6 +447,7 @@ export const useAppStore = defineStore('app', () => {
   return {
     // State
     isLoading,
+    systemWarningKey,
     systemWarning,
     currentConversationTab,
     currentRoutineTab,
@@ -443,6 +476,7 @@ export const useAppStore = defineStore('app', () => {
     clearWriterText,
     speakText,
     stopSpeaking,
+    prepareVoice,
     isFavorite,
     toggleFavorite,
     recordRecent,
