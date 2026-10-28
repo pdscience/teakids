@@ -320,12 +320,16 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
 }
 
 .feature-item {
+  position: relative;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
   background: rgba(77, 148, 255, 0.1);
   border: 1px solid #4D94FF;
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 12px 14px;
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: left;
@@ -334,32 +338,39 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
 .feature-item:hover {
   background: rgba(77, 148, 255, 0.2);
   border-color: rgba(77, 148, 255, 0.4);
-  transform: translateX(4px);
+  transform: translateY(-2px);
 }
 
 .feature-icon {
   font-size: 28px;
-  margin-right: 16px;
+  line-height: 1;
 }
 
 .feature-text {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
 }
 
 .feature-title {
   color: white;
   font-size: 16px;
   font-weight: bold;
+  overflow-wrap: anywhere;
 }
 
 .feature-description {
   color: #ffffff;
   font-size: 13px;
+  overflow-wrap: anywhere;
 }
 
 .feature-arrow {
+  position: absolute;
+  top: 10px;
+  right: 12px;
   color: #4D94FF;
   font-size: 18px;
 }
@@ -370,5 +381,27 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
   font-weight: 500;
   text-align: center;
   margin-top: 40px;
+}
+
+@media (max-width: 380px) {
+  .features-list {
+    gap: 8px;
+  }
+
+  .feature-item {
+    padding: 10px;
+  }
+
+  .feature-icon {
+    font-size: 24px;
+  }
+
+  .feature-title {
+    font-size: 15px;
+  }
+
+  .feature-description {
+    font-size: 12px;
+  }
 }
 </style>
