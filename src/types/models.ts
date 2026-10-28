@@ -58,6 +58,7 @@ export interface CustomConversationCard {
 
 // Interactive Models
 export interface InteractiveItem {
+  id: string;
   name: string;
   icon: string;
   category: string;
