@@ -8,7 +8,7 @@ interface LocalizedAlphabetItem {
   icon: string;
 }
 
-const alphabetBase: LocalizedAlphabetItem[] = [
+export const alphabetBase: LocalizedAlphabetItem[] = [
   { letter: 'A', word: localized('Avião', 'Airplane', 'Avión'), icon: '✈️' },
   { letter: 'B', word: localized('Bola', 'Ball', 'Pelota'), icon: '⚽' },
   { letter: 'C', word: localized('Casa', 'House', 'Casa'), icon: '🏠' },

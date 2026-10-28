@@ -15,7 +15,7 @@ interface LocalizedQuickPhrase {
   color: string;
 }
 
-const quickPhraseBase: LocalizedQuickPhrase[] = [
+export const quickPhraseBase: LocalizedQuickPhrase[] = [
   { id: 'quick:help', icon: '🆘', text: localized('Preciso de ajuda', 'I need help', 'Necesito ayuda'), color: '#FF1744' },
   { id: 'quick:stop', icon: '✋', text: localized('Quero parar', 'I want to stop', 'Quiero parar'), color: '#FF6B35' },
   { id: 'quick:pain', icon: '🤕', text: localized('Estou com dor', "I'm in pain", 'Tengo dolor'), color: '#E91E63' },

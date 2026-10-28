@@ -11,7 +11,7 @@ interface LocalizedInteractiveItem {
   type?: LocalizedText;
 }
 
-const interactiveBase: Record<InteractiveCategory, LocalizedInteractiveItem[]> = {
+export const interactiveBase: Record<InteractiveCategory, LocalizedInteractiveItem[]> = {
   shapes: [
     { name: localized('Círculo', 'Circle', 'Círculo'), icon: '●', category: 'shapes', color: '#FF5252' },
     { name: localized('Quadrado', 'Square', 'Cuadrado'), icon: '■', category: 'shapes', color: '#4DFF88' },
@@ -213,7 +213,7 @@ const interactiveBase: Record<InteractiveCategory, LocalizedInteractiveItem[]> =
   ],
 };
 
-const categoryNames: Record<InteractiveCategory, LocalizedText> = {
+export const categoryNames: Record<InteractiveCategory, LocalizedText> = {
   shapes: localized('Formas', 'Shapes', 'Formas'),
   colors: localized('Cores', 'Colors', 'Colores'),
   animals: localized('Animais', 'Animals', 'Animales'),

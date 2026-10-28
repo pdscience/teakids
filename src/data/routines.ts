@@ -9,7 +9,7 @@ interface LocalizedRoutineItem {
   index: number;
 }
 
-const routineBase: Record<RoutinePeriod, LocalizedRoutineItem[]> = {
+export const routineBase: Record<RoutinePeriod, LocalizedRoutineItem[]> = {
   morning: [
     { icon: '⏰', text: localized('Acordar', 'Wake up', 'Despertar'), period: 'morning', index: 0 },
     { icon: '🛏️', text: localized('Fazer cama', 'Make the bed', 'Hacer la cama'), period: 'morning', index: 1 },
@@ -41,7 +41,7 @@ const routineBase: Record<RoutinePeriod, LocalizedRoutineItem[]> = {
   ],
 };
 
-const periodNames: Record<RoutinePeriod, LocalizedText> = {
+export const periodNames: Record<RoutinePeriod, LocalizedText> = {
   morning: localized('Manhã', 'Morning', 'Mañana'),
   afternoon: localized('Tarde', 'Afternoon', 'Tarde'),
   night: localized('Noite', 'Night', 'Noche'),

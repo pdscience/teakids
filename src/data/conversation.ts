@@ -57,7 +57,7 @@ interface LocalizedConversationItem {
   color?: string;
 }
 
-const conversationBase: Record<ConversationCategory, LocalizedConversationItem[]> = {
+export const conversationBase: Record<ConversationCategory, LocalizedConversationItem[]> = {
   greetings: [
     { icon: '👍', text: localized('Sim', 'Yes', 'Sí'), category: 'greetings', color: getColor('green') },
     { icon: '👎', text: localized('Não', 'No', 'No'), category: 'greetings', color: getColor('red') },
@@ -195,25 +195,25 @@ export function getConversationItems(
   }));
 }
 
+export const conversationCategoryNames: Record<ConversationCategory, LocalizedText> = {
+  greetings: localized('Saudações', 'Greetings', 'Saludos'),
+  needs: localized('Necessidades', 'Needs', 'Necesidades'),
+  health: localized('Saúde', 'Health', 'Salud'),
+  activities: localized('Atividades', 'Activities', 'Actividades'),
+  family: localized('Família', 'Family', 'Familia'),
+  places: localized('Locais', 'Places', 'Lugares'),
+};
+
 export function getAllConversationCategories(
   locale: Locale = DEFAULT_LOCALE
 ): { id: ConversationCategory; name: string; icon: string; color: string }[] {
-  const names: Record<ConversationCategory, LocalizedText> = {
-    greetings: localized('Saudações', 'Greetings', 'Saludos'),
-    needs: localized('Necessidades', 'Needs', 'Necesidades'),
-    health: localized('Saúde', 'Health', 'Salud'),
-    activities: localized('Atividades', 'Activities', 'Actividades'),
-    family: localized('Família', 'Family', 'Familia'),
-    places: localized('Locais', 'Places', 'Lugares'),
-  };
-
   return [
-    { id: 'greetings', name: localize(names.greetings, locale), icon: '👋', color: '#4D94FF' },
-    { id: 'needs', name: localize(names.needs, locale), icon: '🍎', color: '#FF6B35' },
-    { id: 'health', name: localize(names.health, locale), icon: '❤️', color: '#FF1744' },
-    { id: 'activities', name: localize(names.activities, locale), icon: '⚽', color: '#00C853' },
-    { id: 'family', name: localize(names.family, locale), icon: '👨‍👩‍👧', color: '#B24BF3' },
-    { id: 'places', name: localize(names.places, locale), icon: '🏠', color: '#00BCD4' },
+    { id: 'greetings', name: localize(conversationCategoryNames.greetings, locale), icon: '👋', color: '#4D94FF' },
+    { id: 'needs', name: localize(conversationCategoryNames.needs, locale), icon: '🍎', color: '#FF6B35' },
+    { id: 'health', name: localize(conversationCategoryNames.health, locale), icon: '❤️', color: '#FF1744' },
+    { id: 'activities', name: localize(conversationCategoryNames.activities, locale), icon: '⚽', color: '#00C853' },
+    { id: 'family', name: localize(conversationCategoryNames.family, locale), icon: '👨‍👩‍👧', color: '#B24BF3' },
+    { id: 'places', name: localize(conversationCategoryNames.places, locale), icon: '🏠', color: '#00BCD4' },
   ];
 }
 

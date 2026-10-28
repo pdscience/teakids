@@ -13,7 +13,7 @@ interface LocalizedCoreWord {
   icon: string;
 }
 
-const coreVocabularyBase: LocalizedCoreWord[] = [
+export const coreVocabularyBase: LocalizedCoreWord[] = [
   { id: 'eu', label: localized('Eu', 'I', 'Yo'), icon: '🙋' },
   { id: 'quero', label: localized('quero', 'want', 'quiero'), icon: '✋' },
   { id: 'nao-quero', label: localized('não quero', "don't want", 'no quiero'), icon: '🙅' },
