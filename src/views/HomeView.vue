@@ -17,6 +17,10 @@ const navigateTo = (route: string) => {
   router.push(route);
 };
 
+const openParentArea = () => {
+  router.push('/parent');
+};
+
 const achievements = computed(() => [
   {
     key: 'morningRoutine',
@@ -57,6 +61,13 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
   <div class="home-screen">
     <header class="app-header">
       <h1 class="app-title">TEA Kids</h1>
+      <button
+        class="parent-btn"
+        aria-label="Abrir área dos responsáveis"
+        @click="openParentArea"
+      >
+        ⚙️
+      </button>
     </header>
 
     <main class="home-content">
@@ -82,6 +93,7 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
               class="star-item"
               :class="{ unlocked: achievement.unlocked }"
               :title="achievement.label"
+              :aria-label="`${achievement.label}: ${achievement.unlocked ? 'conquistada' : 'pendente'}`"
             >
               <span class="star-icon">{{ achievement.icon }}</span>
               <span class="star-label">{{ achievement.label }}</span>
@@ -137,6 +149,26 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
   background-color: #050510;
   padding: 20px;
   text-align: center;
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.parent-btn {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1E2235;
+  border: 2px solid rgba(77, 148, 255, 0.3);
+  border-radius: 12px;
+  font-size: 19px;
+  cursor: pointer;
 }
 
 .app-title {

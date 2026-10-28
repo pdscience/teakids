@@ -29,7 +29,6 @@ const tabColor = computed(() => categoryColors[currentCategory.value] || '#4D94F
 
 const setCategory = (category: InteractiveCategory) => {
   store.setCurrentInteractiveTab(category);
-  if (quizMode.value) resetQuiz();
 };
 
 // Normal mode speak
@@ -141,6 +140,7 @@ onUnmounted(() => {
         <button
           class="quiz-toggle"
           :class="{ active: quizMode }"
+          :aria-pressed="quizMode"
           @click="toggleQuizMode"
         >
           🎯 {{ quizMode ? 'Quiz ON' : 'Quiz' }}
@@ -148,20 +148,23 @@ onUnmounted(() => {
       </div>
     </header>
 
-    <!-- Category Tabs -->
-    <div class="category-tabs">
+    <!-- Category Grid -->
+    <div class="category-grid" role="group" aria-label="Categorias de interação">
       <button
         v-for="category in categories"
         :key="category.id"
         class="category-tab"
         :class="{ active: currentCategory === category.id }"
+        :aria-pressed="currentCategory === category.id"
+        :aria-label="`Categoria ${category.name}`"
         :style="{ 
           backgroundColor: currentCategory === category.id ? category.color : '#1E2235',
           borderColor: currentCategory === category.id ? category.color : '#2A2F45'
         }"
         @click="setCategory(category.id)"
       >
-        {{ category.icon }} {{ category.name }}
+        <span class="category-tab-icon" aria-hidden="true">{{ category.icon }}</span>
+        <span class="category-tab-name">{{ category.name }}</span>
       </button>
     </div>
 
@@ -199,6 +202,8 @@ onUnmounted(() => {
             wrong:   quizAnswered === 'wrong' && quizAnsweredIndex === index && option.name !== quizCurrentItem?.name,
             disabled: !!quizAnswered
           }"
+          :aria-label="option.name"
+          :aria-disabled="!!quizAnswered"
           @click="answerQuiz(option, index)"
         >
           <span class="option-icon">{{ option.icon }}</span>
@@ -218,6 +223,7 @@ onUnmounted(() => {
           v-for="(item, index) in interactiveItems"
           :key="index"
           class="interactive-card"
+          :aria-label="`Ouvir: ${item.name}`"
           :style="{ borderColor: parseColor(item.color) + '99' }"
           @click="speak(item.name)"
         >
@@ -294,32 +300,54 @@ onUnmounted(() => {
   box-shadow: 0 0 16px #4D94FF66;
 }
 
-/* Category Tabs */
-.category-tabs {
-  display: flex;
-  gap: 12px;
+/* Category Grid */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
   padding: 0 16px 16px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
-.category-tabs::-webkit-scrollbar { display: none; }
-
 .category-tab {
-  flex-shrink: 0;
-  padding: 10px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 8px 4px;
   border: 2px solid #2A2F45;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #1E2235;
   color: #888;
   font-weight: bold;
-  font-size: 13px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.category-tab.active { color: white; }
+.category-tab-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.category-tab-name {
+  font-size: 12px;
+  line-height: 1.15;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.category-tab.active {
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.category-tab:active {
+  transform: scale(0.96);
+}
 
 /* ---- QUIZ STYLES ---- */
 .quiz-content {

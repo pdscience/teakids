@@ -11,9 +11,19 @@ const routes = [
     component: () => import('../views/HomeView.vue'),
   },
   {
+    path: '/parent',
+    name: 'Parent',
+    component: () => import('../views/ParentView.vue'),
+  },
+  {
     path: '/conversation',
     name: 'Conversation',
     component: () => import('../views/ConversationView.vue'),
+  },
+  {
+    path: '/conversation/builder',
+    name: 'SentenceBuilder',
+    component: () => import('../views/SentenceBuilderView.vue'),
   },
   {
     path: '/conversation/:category',

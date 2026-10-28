@@ -5,11 +5,14 @@ import router from './router';
 import './style.css';
 import { initDatabase } from './services/database';
 
-initDatabase();
-
 const app = createApp(App);
 
 app.use(createPinia());
 app.use(router);
 
-app.mount('#app');
+async function bootstrap() {
+  await initDatabase();
+  app.mount('#app');
+}
+
+bootstrap();

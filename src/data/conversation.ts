@@ -21,12 +21,22 @@ const colorMap: Record<string, string> = {
   'greenAccent': '#00E676',
   'deepPurple': '#673AB7',
   'orangeAccent': '#FF9100',
+  'yellow': '#FFEB3B',
+  'black': '#000000',
 };
 
+const DEFAULT_COLOR = '#2196F3';
+const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
+
 // Helper to get color hex from Flutter Color
-function getColor(colorName: string | undefined): string {
-  if (!colorName) return '#2196F3';
-  return colorMap[colorName] || colorName;
+export function getColor(colorName: string | undefined): string {
+  if (!colorName) return DEFAULT_COLOR;
+  if (HEX_COLOR.test(colorName)) return colorName;
+  return colorMap[colorName] || DEFAULT_COLOR;
+}
+
+export function withAlpha(color: string, alpha: string): string {
+  return `${getColor(color)}${alpha}`;
 }
 
 export const conversationData: Record<ConversationCategory, ConversationItem[]> = {

@@ -9,6 +9,7 @@ const router = useRouter();
 const route = useRoute();
 
 let deferredPrompt: BeforeInstallPromptEvent | null = null;
+let dayCheckInterval: ReturnType<typeof setInterval> | null = null;
 const showInstall = ref(false);
 const isIOS = ref(false);
 
@@ -42,11 +43,25 @@ const dismissInstall = () => {
   showInstall.value = false;
 };
 
+const checkDayChange = () => {
+  store.ensureCurrentDay().catch(() => {
+    // A later check will retry
+  });
+};
+
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    checkDayChange();
+  }
+};
+
 onMounted(async () => {
   await store.initialize();
 
   window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   window.addEventListener('appinstalled', handleAppInstalled);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  dayCheckInterval = setInterval(checkDayChange, 60_000);
 
   const ua = window.navigator.userAgent;
   isIOS.value = /iP(hone|ad|od)/.test(ua) && !('MSStream' in window);
@@ -58,6 +73,11 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   window.removeEventListener('appinstalled', handleAppInstalled);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+  if (dayCheckInterval !== null) {
+    clearInterval(dayCheckInterval);
+    dayCheckInterval = null;
+  }
 });
 
 const navItems = [
@@ -103,6 +123,12 @@ const navigateTo = (path: string) => {
       </transition>
 
       <div class="main-content">
+        <div v-if="store.systemWarning" class="warning-banner" role="status">
+          <span class="warning-icon">⚠️</span>
+          <span class="warning-text">{{ store.systemWarning }}</span>
+          <button class="warning-close" @click="store.dismissSystemWarning" aria-label="Fechar aviso">✕</button>
+        </div>
+
         <router-view v-slot="{ Component }">
           <transition name="slide-up" mode="out-in">
             <component :is="Component" />
@@ -115,6 +141,7 @@ const navigateTo = (path: string) => {
             :key="item.tab"
             class="nav-item"
             :class="{ active: currentPath.startsWith(item.route) }"
+            :aria-current="currentPath.startsWith(item.route) ? 'page' : undefined"
             @click="navigateTo(item.route)"
           >
             <span class="nav-icon">{{ item.icon }}</span>
@@ -190,6 +217,35 @@ const navigateTo = (path: string) => {
 .main-content {
   min-height: calc(100vh - 70px);
   padding-bottom: 70px;
+}
+
+.warning-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(255, 184, 77, 0.12);
+  border-bottom: 1px solid rgba(255, 184, 77, 0.35);
+  color: #FFD08A;
+}
+
+.warning-icon {
+  font-size: 18px;
+}
+
+.warning-text {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.warning-close {
+  background: none;
+  border: none;
+  color: rgba(255, 208, 138, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
 }
 
 .bottom-nav {

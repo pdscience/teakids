@@ -32,8 +32,12 @@ export const routineData: Record<'morning' | 'afternoon' | 'night', RoutineItem[
   ],
 };
 
-export function getRoutineItems(period: 'morning' | 'afternoon' | 'night'): RoutineItem[] {
-  return routineData[period];
+export function getRoutineItems(period: string): RoutineItem[] {
+  return routineData[period as 'morning' | 'afternoon' | 'night'] ?? [];
+}
+
+export function getRoutinePeriodLength(period: string): number {
+  return getRoutineItems(period).length;
 }
 
 export function getAllRoutineItems(): RoutineItem[] {
@@ -58,7 +62,7 @@ export function createRoutineProgressFromStorage(period: string, completedItems:
     completedItems,
     progress,
     progressText: `${Math.round(progress)}%`,
-    isCompleted: completedCount === totalCount,
+    isCompleted: totalCount > 0 && completedCount === totalCount,
   };
 }
 

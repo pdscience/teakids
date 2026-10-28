@@ -45,7 +45,7 @@ onUnmounted(() => {
     <header class="screen-header">
       <div class="header-top">
         <h1 class="screen-title">Escrever</h1>
-        <button class="clear-btn" @click="clearText">🗑️</button>
+        <button class="clear-btn" @click="clearText" aria-label="Limpar texto">🗑️</button>
       </div>
       <p class="screen-subtitle">Escreva e eu falo:</p>
     </header>
@@ -87,6 +87,7 @@ onUnmounted(() => {
             v-for="item in alphabetItems"
             :key="item.letter"
             class="alphabet-item"
+            :aria-label="`Letra ${item.letter}, ${item.word}`"
             :style="{ borderColor: getItemColor(item.letter) + '80' }"
             @click="speakLetter(item.letter, item.word)"
           >

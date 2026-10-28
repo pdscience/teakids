@@ -60,3 +60,142 @@ button:focus-visible {
   background-color: var(--color-primary);
   color: white;
 }
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Parent setting: reduce motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Parent setting: larger text */
+.large-text .screen-title {
+  font-size: 32px !important;
+}
+
+.large-text .app-title {
+  font-size: 36px !important;
+}
+
+.large-text .parent-title {
+  font-size: 28px !important;
+}
+
+.large-text .screen-subtitle,
+.large-text .parent-subtitle {
+  font-size: 16px !important;
+}
+
+.large-text .card-text,
+.large-text .item-text,
+.large-text .quick-text,
+.large-text .mini-text,
+.large-text .word-card-label,
+.large-text .option-name,
+.large-text .category-name,
+.large-text .card-name,
+.large-text .custom-text,
+.large-text .feature-text,
+.large-text .description-text,
+.large-text .tip-text {
+  font-size: 17px !important;
+}
+
+.large-text .sentence-preview {
+  font-size: 23px !important;
+}
+
+.large-text .selected-word {
+  font-size: 16px !important;
+}
+
+.large-text .category-tab-name {
+  font-size: 14px !important;
+}
+
+/* Parent setting: high contrast */
+.high-contrast {
+  --color-primary: #7ab8ff;
+  --color-background: #000000;
+  --color-surface: #111111;
+  --color-text: #ffffff;
+  --color-text-secondary: #d6d6d6;
+}
+
+.high-contrast body,
+.high-contrast .app-container,
+.high-contrast .home-screen,
+.high-contrast .conversation-screen,
+.high-contrast .category-screen,
+.high-contrast .routines-screen,
+.high-contrast .writer-screen,
+.high-contrast .interactive-screen,
+.high-contrast .parent-screen,
+.high-contrast .builder-screen {
+  background-color: #000000 !important;
+}
+
+.high-contrast .panel,
+.high-contrast .gate-card,
+.high-contrast .stars-card,
+.high-contrast .conversation-card,
+.high-contrast .category-card,
+.high-contrast .quick-card,
+.high-contrast .mini-card,
+.high-contrast .word-card,
+.high-contrast .sentence-card,
+.high-contrast .history-day,
+.high-contrast .custom-item,
+.high-contrast .feature-item,
+.high-contrast .tip-card,
+.high-contrast .input-card,
+.high-contrast .modal-card,
+.high-contrast .quiz-question-card,
+.high-contrast .progress-card,
+.high-contrast .routine-item,
+.high-contrast .interactive-card,
+.high-contrast .alphabet-item {
+  background-color: #000000 !important;
+  border-color: #ffffff !important;
+}
+
+.high-contrast .screen-title,
+.high-contrast .app-title,
+.high-contrast .parent-title,
+.high-contrast .panel-title,
+.high-contrast .card-text,
+.high-contrast .card-name,
+.high-contrast .category-name,
+.high-contrast .item-text,
+.high-contrast .mini-text,
+.high-contrast .quick-text,
+.high-contrast .word-card-label,
+.high-contrast .option-name,
+.high-contrast .custom-text,
+.high-contrast .feature-text,
+.high-contrast .description-text,
+.high-contrast .tip-text {
+  color: #ffffff !important;
+}
+
+.high-contrast .screen-subtitle,
+.high-contrast .parent-subtitle,
+.high-contrast .panel-hint,
+.high-contrast .custom-category {
+  color: #e0e0e0 !important;
+}

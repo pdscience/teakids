@@ -2,7 +2,7 @@
 import { computed, ref, watch, onUnmounted } from 'vue';
 import { useAppStore } from '../stores/app';
 import type { AchievementKey } from '../stores/app';
-import { getRoutineItems, getPeriodName } from '../data/routines';
+import { getPeriodName } from '../data/routines';
 
 const store = useAppStore();
 
@@ -46,12 +46,19 @@ const confettiItems = [
 ];
 
 const currentPeriod = computed(() => store.currentRoutineTab);
-const routineItems = computed(() => getRoutineItems(currentPeriod.value));
+const routineItems = computed(() =>
+  store.getRoutineItemsForPeriod(currentPeriod.value)
+);
 const progress = computed(() => store.getRoutineProgressData(currentPeriod.value));
 
 const periodColor = computed(() => {
   const period = periods.find(p => p.id === currentPeriod.value);
   return period?.color || '#4D94FF';
+});
+
+const todayLabel = computed(() => {
+  const [year, month, day] = store.routineDate.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('pt-BR');
 });
 
 const setPeriod = (period: 'morning' | 'afternoon' | 'night') => {
@@ -142,7 +149,7 @@ const toggleItem = (index: number) => {
         <div class="modal-card">
           <span class="modal-icon">🗑️</span>
           <p class="modal-title">Limpar Progresso?</p>
-          <p class="modal-text">Deseja limpar o progresso da rotina "{{ getPeriodName(currentPeriod) }}"?</p>
+          <p class="modal-text">Deseja limpar o progresso de hoje da rotina "{{ getPeriodName(currentPeriod) }}"?</p>
           <div class="modal-actions">
             <button class="modal-btn cancel" @click="cancelClear">Cancelar</button>
             <button class="modal-btn confirm" @click="confirmClear">Limpar</button>
@@ -154,9 +161,10 @@ const toggleItem = (index: number) => {
     <header class="screen-header">
       <div class="header-top">
         <h1 class="screen-title">Rotinas</h1>
-        <button class="clear-btn" @click="clearProgress">🗑️</button>
+        <button class="clear-btn" @click="clearProgress" aria-label="Limpar progresso da rotina">🗑️</button>
       </div>
-      <p class="screen-subtitle">Acompanhe suas atividades diárias</p>
+      <p class="screen-subtitle">Acompanhe suas atividades de hoje</p>
+      <p class="today-label">Hoje, {{ todayLabel }}</p>
     </header>
 
     <!-- Period Tabs -->
@@ -166,6 +174,7 @@ const toggleItem = (index: number) => {
         :key="period.id"
         class="period-tab"
         :class="{ active: currentPeriod === period.id }"
+        :aria-pressed="currentPeriod === period.id"
         :style="{ 
           backgroundColor: currentPeriod === period.id ? period.color : '#1E2235',
           borderColor: currentPeriod === period.id ? period.color : '#2A2F45'
@@ -199,17 +208,20 @@ const toggleItem = (index: number) => {
     <!-- Routine Items -->
     <main class="routine-content">
       <div class="routine-list">
-        <button
+        <div
           v-for="(item, index) in routineItems"
-          :key="index"
+          :key="item.id || index"
           class="routine-item"
           :class="{ completed: progress.completedItems[index] }"
           :style="{ 
             borderColor: progress.completedItems[index] ? '#4CAF50' : periodColor + '80'
           }"
-          @click="speak(item.text)"
         >
-          <div class="item-left">
+          <button
+            class="item-speak"
+            :aria-label="`Ouvir: ${item.text}`"
+            @click="speak(item.text)"
+          >
             <span class="item-icon">{{ item.icon }}</span>
             <span 
               class="item-text"
@@ -217,15 +229,17 @@ const toggleItem = (index: number) => {
             >
               {{ item.text }}
             </span>
-          </div>
-          <div 
+          </button>
+          <button
             class="checkbox"
             :class="{ checked: progress.completedItems[index] }"
-            @click.stop="toggleItem(index)"
+            :aria-pressed="progress.completedItems[index]"
+            :aria-label="`Marcar ${item.text} como ${progress.completedItems[index] ? 'não concluído' : 'concluído'}`"
+            @click="toggleItem(index)"
           >
             <span v-if="progress.completedItems[index]">✓</span>
-          </div>
-        </button>
+          </button>
+        </div>
       </div>
     </main>
   </div>
@@ -414,6 +428,13 @@ const toggleItem = (index: number) => {
   font-size: 16px;
 }
 
+.today-label {
+  color: #4D94FF;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 6px;
+}
+
 /* ---- Tabs ---- */
 .period-tabs {
   display: flex;
@@ -515,17 +536,24 @@ const toggleItem = (index: number) => {
   border: 2px solid rgba(77, 148, 255, 0.5);
   border-radius: 20px;
   padding: 16px;
-  cursor: pointer;
   transition: all 0.3s ease;
+}
+
+.item-speak {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .routine-item.completed {
   background: rgba(76, 175, 80, 0.1);
-}
-
-.item-left {
-  display: flex;
-  align-items: center;
 }
 
 .item-icon {
@@ -549,6 +577,7 @@ const toggleItem = (index: number) => {
   height: 28px;
   border: 2px solid;
   border-radius: 6px;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;

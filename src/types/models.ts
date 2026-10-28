@@ -6,11 +6,24 @@ export interface AlphabetItem {
 }
 
 // Routine Models
+export type RoutinePeriod = 'morning' | 'afternoon' | 'night';
+
 export interface RoutineItem {
   icon: string;
   text: string;
-  period: 'morning' | 'afternoon' | 'night';
+  period: RoutinePeriod;
   index: number;
+  id?: string;
+  custom?: boolean;
+}
+
+export interface CustomRoutineItem {
+  id: string;
+  period: RoutinePeriod;
+  icon: string;
+  text: string;
+  createdAt: string;
+  removedAt: string | null;
 }
 
 export interface RoutineProgress {
@@ -32,6 +45,15 @@ export interface ConversationItem {
 }
 
 export type ConversationCategory = 'greetings' | 'needs' | 'health' | 'activities' | 'family' | 'places';
+
+export interface CustomConversationCard {
+  id: string;
+  category: ConversationCategory;
+  icon: string;
+  text: string;
+  color: string;
+  createdAt: string;
+}
 
 // Interactive Models
 export interface InteractiveItem {

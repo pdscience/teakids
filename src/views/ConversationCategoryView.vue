@@ -3,7 +3,8 @@ import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAppStore } from '../stores/app';
 import type { ConversationCategory } from '../types/models';
-import { getConversationItems } from '../data/conversation';
+import { getConversationItems, withAlpha } from '../data/conversation';
+import { getConversationEntryId } from '../data/communication';
 
 const props = defineProps<{
   category: string;
@@ -14,8 +15,33 @@ const route = useRoute();
 
 const categoryId = computed(() => props.category || (route.params.category as string));
 
-const conversationItems = computed(() => {
-  return getConversationItems(categoryId.value as ConversationCategory);
+interface DisplayItem {
+  id: string;
+  icon: string;
+  text: string;
+  color?: string;
+}
+
+const conversationItems = computed<DisplayItem[]>(() => {
+  const baseItems = getConversationItems(
+    categoryId.value as ConversationCategory
+  ).map((item) => ({
+    id: getConversationEntryId(item),
+    icon: item.icon,
+    text: item.text,
+    color: item.color,
+  }));
+
+  const customItems = store.customCards
+    .filter((card) => card.category === categoryId.value)
+    .map((card) => ({
+      id: card.id,
+      icon: card.icon,
+      text: card.text,
+      color: card.color,
+    }));
+
+  return [...baseItems, ...customItems];
 });
 
 const categoryTitles: Record<string, { title: string; icon: string; color: string }> = {
@@ -32,17 +58,39 @@ const categoryInfo = computed(() => {
 });
 
 const speakingIndex = ref<number | null>(null);
+let speakToken = 0;
 
-const speak = async (text: string, index: number) => {
+const speak = async (index: number) => {
+  const item = conversationItems.value[index];
+  if (!item) return;
+
   if (speakingIndex.value === index) {
-    store.stopSpeaking();
+    speakToken++;
     speakingIndex.value = null;
+    await store.stopSpeaking();
     return;
   }
+
+  const token = ++speakToken;
   speakingIndex.value = index;
   store.unlockAchievement('usedConversation');
-  await store.speakText(text);
-  speakingIndex.value = null;
+  void store.recordRecent(item.id);
+  await store.speakText(item.text);
+
+  if (token === speakToken) {
+    speakingIndex.value = null;
+  }
+};
+
+const isFavorite = (index: number): boolean => {
+  const item = conversationItems.value[index];
+  return item ? store.isFavorite(item.id) : false;
+};
+
+const toggleFavorite = (index: number) => {
+  const item = conversationItems.value[index];
+  if (!item) return;
+  void store.toggleFavorite(item.id);
 };
 </script>
 
@@ -55,29 +103,45 @@ const speak = async (text: string, index: number) => {
 
     <main class="items-content">
       <div class="items-grid">
-        <button
+        <div
           v-for="(item, index) in conversationItems"
           :key="index"
           class="conversation-card"
           :class="{ speaking: speakingIndex === index }"
           :style="{ 
-            borderColor: speakingIndex === index ? categoryInfo.color : (item.color || '#4D94FF') + '99',
+            borderColor: speakingIndex === index ? categoryInfo.color : withAlpha(item.color || '#4D94FF', '99'),
             boxShadow: speakingIndex === index ? `0 0 24px ${categoryInfo.color}88` : 'none'
           }"
-          @click="speak(item.text, index)"
         >
-          <span class="card-icon" :class="{ bounce: speakingIndex === index }">{{ item.icon }}</span>
-          <span class="card-text">{{ item.text }}</span>
+          <button
+            class="card-speak"
+            :aria-pressed="speakingIndex === index"
+            :aria-label="`Falar: ${item.text}`"
+            @click="speak(index)"
+          >
+            <span class="card-icon" :class="{ bounce: speakingIndex === index }">{{ item.icon }}</span>
+            <span class="card-text">{{ item.text }}</span>
 
-          <!-- Sound Wave Indicator -->
-          <div v-if="speakingIndex === index" class="sound-wave">
-            <span class="wave-bar"></span>
-            <span class="wave-bar"></span>
-            <span class="wave-bar"></span>
-            <span class="wave-bar"></span>
-            <span class="wave-bar"></span>
-          </div>
-        </button>
+            <!-- Sound Wave Indicator -->
+            <div v-if="speakingIndex === index" class="sound-wave">
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+            </div>
+          </button>
+
+          <button
+            class="favorite-btn"
+            :class="{ active: isFavorite(index) }"
+            :aria-pressed="isFavorite(index)"
+            :aria-label="`${isFavorite(index) ? 'Remover dos' : 'Adicionar aos'} favoritos: ${item.text}`"
+            @click="toggleFavorite(index)"
+          >
+            {{ isFavorite(index) ? '★' : '☆' }}
+          </button>
+        </div>
       </div>
     </main>
   </div>
@@ -136,21 +200,61 @@ const speak = async (text: string, index: number) => {
   background: #1E2235;
   border: 2px solid rgba(77, 148, 255, 0.4);
   border-radius: 20px;
-  padding: 20px 12px;
-  cursor: pointer;
+  padding: 0;
   transition: all 0.3s ease;
   min-height: 140px;
   position: relative;
   overflow: hidden;
 }
 
-.conversation-card:active {
+.card-speak {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  min-height: 140px;
+  padding: 20px 12px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.card-speak:active {
   transform: scale(0.95);
 }
 
 .conversation-card.speaking {
   background: #1a2640;
   transform: scale(1.03);
+}
+
+.favorite-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 5, 16, 0.55);
+  border: none;
+  border-radius: 50%;
+  color: #666;
+  font-size: 19px;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.favorite-btn.active {
+  color: #FFC107;
+}
+
+.favorite-btn:active {
+  transform: scale(0.9);
 }
 
 .card-icon {

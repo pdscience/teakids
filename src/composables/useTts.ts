@@ -4,8 +4,24 @@ import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 type TtsState = 'playing' | 'stopped' | 'paused';
 
+export interface SpeakOptions {
+  lang?: string;
+  rate?: number;
+  pitch?: number;
+  volume?: number;
+}
+
+const DEFAULT_OPTIONS: Required<SpeakOptions> = {
+  lang: 'pt-BR',
+  rate: 0.9,
+  pitch: 1.0,
+  volume: 1.0,
+};
+
 const isInitialized = ref(false);
 const ttsState = ref<TtsState>('stopped');
+
+let cancelCurrentWebSpeech: (() => void) | null = null;
 
 export function useTts() {
   const isNative = Capacitor.isNativePlatform();
@@ -24,13 +40,49 @@ export function useTts() {
     }
   };
 
-  const speak = async (text: string): Promise<void> => {
+  const speakWeb = async (text: string, options: Required<SpeakOptions>): Promise<void> => {
+    const synth = globalThis.speechSynthesis;
+    if (!synth) return;
+
+    cancelCurrentWebSpeech?.();
+    synth.cancel();
+
+    await new Promise<void>((resolve) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = options.lang;
+      utterance.rate = options.rate;
+      utterance.pitch = options.pitch;
+      utterance.volume = options.volume;
+
+      let settled = false;
+      let safetyTimer: ReturnType<typeof setTimeout> | null = null;
+
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        if (safetyTimer !== null) clearTimeout(safetyTimer);
+        if (cancelCurrentWebSpeech === finish) cancelCurrentWebSpeech = null;
+        resolve();
+      };
+
+      cancelCurrentWebSpeech = finish;
+      utterance.onend = finish;
+      utterance.onerror = finish;
+      safetyTimer = setTimeout(finish, Math.max(3000, text.length * 150));
+
+      synth.speak(utterance);
+    });
+  };
+
+  const speak = async (text: string, options: SpeakOptions = {}): Promise<void> => {
     if (!text.trim()) return;
 
+    const merged = { ...DEFAULT_OPTIONS, ...options };
+
     if (!isNative) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'pt-BR';
-      speechSynthesis.speak(utterance);
+      ttsState.value = 'playing';
+      await speakWeb(text, merged);
+      ttsState.value = 'stopped';
       return;
     }
 
@@ -50,11 +102,11 @@ export function useTts() {
       ttsState.value = 'playing';
 
       await TextToSpeech.speak({
-        text: text,
-        lang: 'pt-BR',
-        rate: 0.9,
-        pitch: 1.0,
-        volume: 1.0,
+        text,
+        lang: merged.lang,
+        rate: merged.rate,
+        pitch: merged.pitch,
+        volume: merged.volume,
       });
 
       ttsState.value = 'stopped';
@@ -65,7 +117,8 @@ export function useTts() {
 
   const stop = async (): Promise<void> => {
     if (!isNative) {
-      speechSynthesis.cancel();
+      cancelCurrentWebSpeech?.();
+      globalThis.speechSynthesis?.cancel();
       ttsState.value = 'stopped';
       return;
     }
@@ -83,7 +136,7 @@ export function useTts() {
   };
 
   const isSupported = (): boolean => {
-    return isNative || typeof window !== 'undefined' && 'speechSynthesis' in window;
+    return isNative || typeof globalThis.speechSynthesis !== 'undefined';
   };
 
   return {
