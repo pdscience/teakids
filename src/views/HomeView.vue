@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppStore } from '../stores/app';
+import logoUrl from '../assets/TEA Kids.png';
 
 const router = useRouter();
 const store = useAppStore();
@@ -60,23 +61,21 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
 <template>
   <div class="home-screen">
     <header class="app-header">
-      <h1 class="app-title">TEA Kids</h1>
+      <h1 class="welcome-title">Sejam bem-vindos(as)!💙</h1>
       <button
         class="parent-btn"
         aria-label="Abrir área dos responsáveis"
         @click="openParentArea"
-      >
-        ⚙️
-      </button>
+      >⚙️</button>
     </header>
 
     <main class="home-content">
       <div class="welcome-section">
         <div class="logo-container">
-          <span class="logo-icon">🧠</span>
+          <img :src="logoUrl" alt="TEA Kids" class="logo-image" />
         </div>
         
-        <h2 class="welcome-title">💙 Bem-vindo(a)! 💙</h2>
+        <h2 class="welcome-title"></h2>
 
         <!-- Daily Stars Card -->
         <div class="stars-card">
@@ -132,7 +131,6 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
         </div>
 
         <p class="footer-message">
-          Um espaço seguro para aprender, comunicar e crescer 🌟
         </p>
       </div>
     </main>
@@ -187,31 +185,31 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
 }
 
 .logo-container {
-  width: 120px;
-  height: 120px;
+  width: 100%;
   border: 4px solid #4D94FF;
   border-radius: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   margin: 0 auto 30px;
   overflow: hidden;
 }
 
-.logo-icon { font-size: 60px; }
+.logo-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
 
 .welcome-title {
-  color: #4D94FF;
+  color: #ffffff;
   font-size: 24px;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 05px;
 }
 
 /* ---- Stars Card ---- */
 .stars-card {
   background: linear-gradient(135deg, #1a1e35, #22263d);
-  border: 2px solid rgba(255, 193, 7, 0.3);
+  border: 2px solid #4D94FF;
   border-radius: 20px;
   padding: 16px 20px;
   margin-bottom: 20px;
@@ -313,7 +311,7 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
   background: #1E2235;
   border-radius: 20px;
   padding: 24px;
-  border: 2px solid rgba(77, 148, 255, 0.3);
+  border: 2px solid #4D94FF;
 }
 
 .description-text {
@@ -338,8 +336,8 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
 }
 
 .features-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -347,7 +345,7 @@ const unlockedCount = computed(() => achievements.value.filter(a => a.unlocked).
   display: flex;
   align-items: center;
   background: rgba(77, 148, 255, 0.1);
-  border: 2px solid rgba(77, 148, 255, 0.2);
+  border: 1px solid #4D94FF;
   border-radius: 12px;
   padding: 12px 16px;
   cursor: pointer;
