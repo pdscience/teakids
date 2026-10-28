@@ -274,14 +274,14 @@ const navigateTo = (path: string) => {
   justify-content: center;
   background: none;
   border: none;
-  color: #666;
+  color: #80807c;
   cursor: pointer;
   padding: 8px 16px;
   transition: all 0.3s ease;
 }
 
 .nav-item.active {
-  color: #4D94FF;
+  color: #ffffff;
 }
 
 .nav-icon {
