@@ -1,6 +1,7 @@
 import type { ConversationItem, CustomConversationCard } from '../types/models';
-import { conversationData } from './conversation';
-import { quickPhrases } from './quickPhrases';
+import { CONVERSATION_CATEGORIES, getConversationItems } from './conversation';
+import { getQuickPhrases } from './quickPhrases';
+import { DEFAULT_LOCALE, LOCALES, type Locale } from '../i18n/types';
 import { slugify } from '../utils/slug';
 
 export interface CommunicationEntry {
@@ -12,33 +13,58 @@ export interface CommunicationEntry {
 }
 
 export function getConversationEntryId(item: ConversationItem): string {
-  return `${item.category}:${slugify(item.text)}`;
+  return item.id || `${item.category}:${slugify(item.text)}`;
 }
 
-const conversationEntries: CommunicationEntry[] = Object.values(conversationData)
-  .flat()
-  .map((item) => ({
-    id: getConversationEntryId(item),
-    icon: item.icon,
-    text: item.text,
-    color: item.color || '#4D94FF',
-    category: item.category,
-  }));
-
-const quickEntries: CommunicationEntry[] = quickPhrases.map((phrase) => ({
-  ...phrase,
-  category: 'quick',
-}));
-
-const baseEntries: CommunicationEntry[] = [...quickEntries, ...conversationEntries];
+const baseEntriesByLocale = new Map<Locale, CommunicationEntry[]>();
+const allEntriesByLocale = new Map<Locale, CommunicationEntry[]>();
+const entriesByIdByLocale = new Map<Locale, Map<string, CommunicationEntry>>();
 
 let customEntries: CommunicationEntry[] = [];
-let allEntries: CommunicationEntry[] = [...baseEntries];
-let entriesById = new Map(allEntries.map((entry) => [entry.id, entry]));
 
-function rebuildEntries(): void {
-  allEntries = [...baseEntries, ...customEntries];
-  entriesById = new Map(allEntries.map((entry) => [entry.id, entry]));
+function buildBaseEntries(locale: Locale): CommunicationEntry[] {
+  const quickEntries: CommunicationEntry[] = getQuickPhrases(locale).map((phrase) => ({
+    ...phrase,
+    category: 'quick',
+  }));
+
+  const conversationEntries: CommunicationEntry[] = CONVERSATION_CATEGORIES.flatMap(
+    (category) =>
+      getConversationItems(category, locale).map((item) => ({
+        id: item.id,
+        icon: item.icon,
+        text: item.text,
+        color: item.color || '#4D94FF',
+        category: item.category,
+      }))
+  );
+
+  return [...quickEntries, ...conversationEntries];
+}
+
+function rebuildLocale(locale: Locale): void {
+  const baseEntries = baseEntriesByLocale.get(locale) ?? buildBaseEntries(locale);
+  baseEntriesByLocale.set(locale, baseEntries);
+
+  const allEntries = [...baseEntries, ...customEntries];
+  allEntriesByLocale.set(locale, allEntries);
+  entriesByIdByLocale.set(
+    locale,
+    new Map(allEntries.map((entry) => [entry.id, entry]))
+  );
+}
+
+function rebuildAllLocales(): void {
+  for (const locale of LOCALES) {
+    rebuildLocale(locale);
+  }
+}
+
+function getEntries(locale: Locale): CommunicationEntry[] {
+  if (!allEntriesByLocale.has(locale)) {
+    rebuildLocale(locale);
+  }
+  return allEntriesByLocale.get(locale)!;
 }
 
 export function setCustomCommunicationEntries(
@@ -51,7 +77,7 @@ export function setCustomCommunicationEntries(
     color: card.color,
     category: card.category,
   }));
-  rebuildEntries();
+  rebuildAllLocales();
 }
 
 export function getCustomCommunicationEntries(
@@ -62,10 +88,18 @@ export function getCustomCommunicationEntries(
     : customEntries;
 }
 
-export function getCommunicationEntry(id: string): CommunicationEntry | undefined {
-  return entriesById.get(id);
+export function getCommunicationEntry(
+  id: string,
+  locale: Locale = DEFAULT_LOCALE
+): CommunicationEntry | undefined {
+  getEntries(locale);
+  return entriesByIdByLocale.get(locale)?.get(id);
 }
 
-export function getAllCommunicationEntries(): CommunicationEntry[] {
-  return allEntries;
+export function getAllCommunicationEntries(
+  locale: Locale = DEFAULT_LOCALE
+): CommunicationEntry[] {
+  return getEntries(locale);
 }
+
+export { slugify } from '../utils/slug';
