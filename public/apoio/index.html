@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apoie o TEA Kids — comunicação assistida</title>
+    <meta
+      name="description"
+      content="Apoie o TEA Kids: um aplicativo gratuito de comunicação assistida, rotinas e aprendizado para crianças no espectro autista. Sua contribuição mantém o app gratuito e acessível."
+    />
+    <meta name="theme-color" content="#050510" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Apoie o TEA Kids" />
+    <meta
+      property="og:description"
+      content="Um aplicativo gratuito de comunicação assistida para crianças no espectro autista. Sua contribuição mantém o app gratuito para todas as famílias."
+    />
+    <meta property="og:image" content="../icon-512.png" />
+    <style>
+      :root {
+        --bg: #050510;
+        --surface: #1e2235;
+        --surface-soft: #12172a;
+        --primary: #4d94ff;
+        --primary-soft: rgba(77, 148, 255, 0.12);
+        --text: #ffffff;
+        --muted: #9aaac2;
+        --border: rgba(77, 148, 255, 0.25);
+        --radius: 16px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+        line-height: 1.55;
+        padding-bottom: 48px;
+      }
+
+      .wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px 0;
+        flex-wrap: wrap;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 20px;
+        font-weight: bold;
+      }
+
+      .brand span.mark {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: var(--primary-soft);
+        border: 2px solid var(--primary);
+        font-size: 18px;
+      }
+
+      .nav a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .hero {
+        text-align: center;
+        padding: 56px 0 40px;
+      }
+
+      .hero h1 {
+        font-size: clamp(30px, 5vw, 44px);
+        line-height: 1.15;
+        margin-bottom: 16px;
+      }
+
+      .hero p {
+        color: var(--muted);
+        font-size: 18px;
+        max-width: 680px;
+        margin: 0 auto 28px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 13px 24px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: bold;
+        text-decoration: none;
+        border: 2px solid transparent;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .btn-secondary {
+        background: transparent;
+        border-color: var(--border);
+        color: var(--primary);
+      }
+
+      section {
+        padding: 44px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+      }
+
+      section h2 {
+        font-size: 26px;
+        margin-bottom: 8px;
+      }
+
+      .lead {
+        color: var(--muted);
+        margin-bottom: 28px;
+        max-width: 700px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+      }
+
+      .card h3 {
+        font-size: 17px;
+        margin-bottom: 6px;
+      }
+
+      .card p {
+        color: var(--muted);
+        font-size: 14.5px;
+      }
+
+      .icon {
+        font-size: 26px;
+        margin-bottom: 10px;
+        display: block;
+      }
+
+      .amounts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .amount {
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px 12px;
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+        color: var(--text);
+        text-decoration: none;
+        transition: border-color 0.2s ease, transform 0.2s ease;
+      }
+
+      .amount:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+      }
+
+      .amount small {
+        display: block;
+        font-size: 12px;
+        font-weight: normal;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .notice {
+        display: none;
+        background: rgba(255, 196, 77, 0.12);
+        border: 1px solid rgba(255, 196, 77, 0.4);
+        color: #ffd27d;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 14px;
+      }
+
+      .notice.visible {
+        display: block;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 14px;
+      }
+
+      .stat {
+        background: var(--surface-soft);
+        border-radius: var(--radius);
+        padding: 20px 14px;
+        text-align: center;
+      }
+
+      .stat strong {
+        display: block;
+        font-size: 30px;
+        color: var(--primary);
+      }
+
+      .stat span {
+        color: var(--muted);
+        font-size: 13.5px;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 24px;
+        align-items: start;
+      }
+
+      .pix {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px;
+      }
+
+      .pix code {
+        display: block;
+        background: var(--bg);
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin: 10px 0;
+        font-size: 13.5px;
+        word-break: break-all;
+        color: var(--text);
+      }
+
+      .link {
+        color: var(--primary);
+        word-break: break-all;
+      }
+
+      details {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 10px;
+      }
+
+      summary {
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      details p {
+        color: var(--muted);
+        margin-top: 10px;
+        font-size: 14.5px;
+      }
+
+      footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        padding: 28px 0 0;
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      footer strong {
+        color: var(--text);
+        display: block;
+        font-size: 17px;
+        margin-bottom: 4px;
+      }
+
+      @media (max-width: 680px) {
+        .split {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          padding: 38px 0 28px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap nav">
+        <div class="brand"><span class="mark">🧠</span> TEA Kids</div>
+        <a href="#apoie">Apoie o projeto</a>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <section class="hero">
+        <h1>Ajude a criança a dizer o que precisa 💙</h1>
+        <p>
+          O TEA Kids é um aplicativo gratuito de comunicação assistida, rotinas e aprendizado para
+          crianças no espectro autista. Com sua contribuição, ele continua gratuito, sem anúncios
+          e sem coletar dados de nenhuma família.
+        </p>
+        <div class="actions">
+          <a class="btn btn-primary" id="hero-cta" href="#apoie">Apoiar agora</a>
+          <a class="btn btn-secondary" id="hero-sponsor" href="#patrocinio">Quero patrocinar</a>
+        </div>
+      </section>
+
+      <section id="apoie">
+        <h2>Escolha um valor</h2>
+        <p class="lead">
+          Qualquer quantia ajuda — e pode ser uma contribuição única ou mensal. Os valores abaixo
+          abrem o checkout seguro do provedor de pagamento.
+        </p>
+        <div class="amounts" id="amounts">
+          <a class="amount" data-amount="10" href="#">R$ 10<small>manter o app no ar</small></a>
+          <a class="amount" data-amount="25" href="#">R$ 25<small>novos conteúdos</small></a>
+          <a class="amount" data-amount="50" href="#">R$ 50<small>traduções e acessibilidade</small></a>
+          <a class="amount" data-amount="100" href="#">R$ 100<small>suporte a uma família</small></a>
+        </div>
+        <p class="notice" id="payment-notice">
+          O link de pagamento ainda não foi configurado. Abra <code>public/apoio/index.html</code> e
+          preencha <code>CONFIG.paymentLink</code> com o link do Mercado Pago, Stripe ou outro
+          provedor.
+        </p>
+        <div class="actions" style="justify-content: flex-start">
+          <a class="btn btn-secondary" id="other-amount" href="#">Outro valor</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>Para onde vai o dinheiro</h2>
+        <p class="lead">Transparência total: cada contribuição paga uma parte concreta do projeto.</p>
+        <div class="grid">
+          <div class="card">
+            <span class="icon">🌐</span>
+            <h3>Hospedagem e distribuição</h3>
+            <p>
+              Manter o aplicativo publicado no mundo todo, com versão web instalável e versão
+              Android, sem custo de servidor para a família.
+            </p>
+          </div>
+          <div class="card">
+            <span class="icon">🧩</span>
+            <h3>Conteúdo e traduções</h3>
+            <p>
+              Novos cartões de comunicação, atividades de rotina e palavras para o montador de
+              frases, além da manutenção dos idiomas português, inglês e espanhol.
+            </p>
+          </div>
+          <div class="card">
+            <span class="icon">💙</span>
+            <h3>Apoio às famílias</h3>
+            <p>
+              Ajustes de acessibilidade, orientação para uso do app e respostas a quem precisa de
+              ajuda para começar.
+            </p>
+          </div>
+          <div class="card">
+            <span class="icon">🧪</span>
+            <h3>Testes e qualidade</h3>
+            <p>
+              Testes automatizados e correções para que o app funcione bem em celulares antigos e
+              em tablets usados por escolas.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Impacto em números</h2>
+        <p class="lead">O que já está pronto e disponível para todas as famílias, hoje.</p>
+        <div class="stats">
+          <div class="stat"><strong>5</strong><span>módulos de uso diário</span></div>
+          <div class="stat"><strong>3</strong><span>idiomas completos</span></div>
+          <div class="stat"><strong>23</strong><span>atividades de rotina</span></div>
+          <div class="stat"><strong>183</strong><span>itens de aprendizado</span></div>
+          <div class="stat"><strong>0</strong><span>dados enviados a servidores</span></div>
+        </div>
+      </section>
+
+      <section id="patrocinio">
+        <h2>Patrocínio empresarial</h2>
+        <p class="lead">
+          Sua empresa pode apoiar o projeto com uma contribuição mensal, com nota fiscal e
+          reconhecimento na página de agradecimentos.
+        </p>
+        <div class="split">
+          <div class="grid">
+            <div class="card">
+              <h3>Planos a partir de R$ 200/mês</h3>
+              <p>
+                Ideal para escolas, clínicas e empresas que apoiam famílias de TEA. Inclui
+                nota fiscal, material de apresentação e relatório de uso do app.
+              </p>
+            </div>
+            <div class="card">
+              <h3>Uso institucional</h3>
+              <p>
+                Licença por estudante, painel do educador e relatórios de adesão das rotinas
+                — acompanhamento que o gestor leva para a reunião.
+              </p>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Fale com a gente</h3>
+            <p style="margin-bottom: 14px">
+              Envie um e-mail contando quem é sua empresa e o que deseja apoiar. Respondemos em
+              até 2 dias úteis.
+            </p>
+            <a class="btn btn-primary" id="sponsor-mail" href="#">Quero patrocinar</a>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Outras formas de apoiar</h2>
+        <div class="split">
+          <div>
+            <h3 style="margin-bottom: 12px">Perguntas frequentes</h3>
+            <details>
+              <summary>O aplicativo é gratuito?</summary>
+              <p>
+                Sim. Todas as funções — comunicação, rotinas, escrita, interação, favoritos e área
+                dos responsáveis — são gratuitas. A contribuição é voluntária e não libera
+                recursos bloqueados.
+              </p>
+            </details>
+            <details>
+              <summary>Meus dados saem do celular?</summary>
+              <p>
+                Não. Progresso, favoritos, ajustes e personalizações ficam gravados no próprio
+                aparelho. Nada é enviado para servidores ou terceiros.
+              </p>
+            </details>
+            <details>
+              <summary>Funciona sem internet?</summary>
+              <p>
+                Sim. Depois do primeiro carregamento o app funciona offline e pode ser instalado na
+                tela inicial como um aplicativo comum.
+              </p>
+            </details>
+            <details>
+              <summary>Posso usar na escola ou na clínica?</summary>
+              <p>
+                Sim. O app é gratuito para uso educacional e clínico. Para uso institucional com
+                painel do educador e relatórios, fale com a gente sobre a licença por estudante.
+              </p>
+            </details>
+          </div>
+          <div class="pix">
+            <h3 style="margin-bottom: 8px">Contribuição por Pix</h3>
+            <p style="color: var(--muted); font-size: 14px">
+              Prefere Pix? Use a chave abaixo. Depois de pagar, envie o comprovante por e-mail para
+              emitirmos o recibo.
+            </p>
+            <code id="pix-key">chave-pix-configurar</code>
+            <button class="btn btn-secondary" id="copy-pix" type="button">Copiar chave Pix</button>
+            <div class="actions" style="justify-content: flex-start; margin-top: 10px">
+              <button class="btn btn-secondary" id="share-page" type="button">Compartilhar esta página</button>
+            </div>
+            <p style="margin-top: 16px; color: var(--muted); font-size: 14px">
+              E-mail: <a class="link" id="support-email" href="#">contato@teakids.app</a><br />
+              WhatsApp: <span id="support-whatsapp">configure o número</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <strong>TEA Kids</strong>
+        <p>Um mundo mais azul, um mundo com mais inclusão 💙</p>
+        <p style="margin-top: 10px">
+          <a class="link" id="app-link" href="../">Conheça o aplicativo</a>
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      const CONFIG = {
+        // Link de pagamento do provedor (Mercado Pago, Stripe, PagSeguro...).
+        paymentLink: 'COLE_AQUI_O_LINK_DE_PAGAMENTO',
+        email: 'contato@teakids.app',
+        whatsapp: '5511999999999',
+        pixKey: 'chave-pix-configurar',
+        pixName: 'TEA Kids',
+        appUrl: '../',
+      };
+
+      const isConfigured = (value) =>
+        Boolean(value) && !String(value).includes('COLE_AQUI') && !String(value).includes('configurar');
+
+      const notice = document.getElementById('payment-notice');
+      const amounts = Array.from(document.querySelectorAll('.amount'));
+
+      const buildPaymentUrl = (amount) => {
+        if (!isConfigured(CONFIG.paymentLink)) return null;
+        const url = new URL(CONFIG.paymentLink, window.location.href);
+        url.searchParams.set('amount', String(amount));
+        url.searchParams.set('description', 'Apoio ao TEA Kids');
+        return url.toString();
+      };
+
+      const openPayment = (amount, event) => {
+        const url = buildPaymentUrl(amount);
+        if (!url) {
+          event.preventDefault();
+          notice.classList.add('visible');
+          return;
+        }
+        window.open(url, '_blank', 'noopener');
+      };
+
+      amounts.forEach((button) => {
+        button.addEventListener('click', (event) => openPayment(button.dataset.amount, event));
+      });
+
+      document.getElementById('other-amount').addEventListener('click', (event) => {
+        const url = buildPaymentUrl('other');
+        if (!url) {
+          event.preventDefault();
+          notice.classList.add('visible');
+          return;
+        }
+        window.open(url, '_blank', 'noopener');
+      });
+
+      const sponsorLink = () =>
+        `mailto:${CONFIG.email}?subject=${encodeURIComponent('Quero patrocinar o TEA Kids')}`;
+
+      document.getElementById('sponsor-mail').href = sponsorLink();
+      document.getElementById('hero-sponsor').href = sponsorLink();
+      document.getElementById('hero-cta').href = '#apoie';
+
+      const emailNode = document.getElementById('support-email');
+      emailNode.href = `mailto:${CONFIG.email}`;
+      emailNode.textContent = CONFIG.email;
+
+      const whatsappNode = document.getElementById('support-whatsapp');
+      const whatsappNumber = String(CONFIG.whatsapp).replace(/\D/g, '');
+      whatsappNode.innerHTML = `<a class="link" href="https://wa.me/${whatsappNumber}" target="_blank" rel="noopener">${CONFIG.whatsapp}</a>`;
+
+      const pixNode = document.getElementById('pix-key');
+      pixNode.textContent = CONFIG.pixKey;
+
+      document.getElementById('copy-pix').addEventListener('click', async () => {
+        const button = document.getElementById('copy-pix');
+        try {
+          await navigator.clipboard.writeText(CONFIG.pixKey);
+          button.textContent = 'Chave copiada!';
+        } catch {
+          button.textContent = CONFIG.pixKey;
+        }
+        setTimeout(() => {
+          button.textContent = 'Copiar chave Pix';
+        }, 2500);
+      });
+
+      const appLink = document.getElementById('app-link');
+      appLink.href = CONFIG.appUrl;
+
+      const shareButton = document.getElementById('share-page');
+      shareButton.addEventListener('click', async () => {
+        const shareData = {
+          title: 'Apoie o TEA Kids',
+          text: 'O TEA Kids é um aplicativo gratuito de comunicação assistida para crianças no espectro autista.',
+          url: window.location.href,
+        };
+        try {
+          if (navigator.share) {
+            await navigator.share(shareData);
+            return;
+          }
+          await navigator.clipboard.writeText(window.location.href);
+          shareButton.textContent = 'Link copiado!';
+        } catch {
+          shareButton.textContent = 'Link copiado!';
+        }
+        setTimeout(() => {
+          shareButton.textContent = 'Compartilhar esta página';
+        }, 2500);
+      });
+    </script>
+  </body>
+</html>

@@ -13,6 +13,7 @@ import {
   type RoutineHistoryEntry,
 } from '../services/database';
 import { getLocalDateKey } from '../utils/date';
+import { SUPPORT_URL, sponsorMailto } from '../utils/support';
 import type { AppSettings } from '../utils/settings';
 import type {
   ConversationCategory,
@@ -598,6 +599,19 @@ const resetAll = async () => {
             {{ resetting ? t('parent.deleting') : t('parent.resetAll') }}
           </button>
         </section>
+
+        <section class="panel">
+          <h2 class="panel-title">{{ t('parent.supportTitle') }}</h2>
+          <p class="panel-hint">{{ t('parent.supportText') }}</p>
+          <div class="row-actions">
+            <a class="secondary-btn" :href="SUPPORT_URL" target="_blank" rel="noopener">
+              {{ t('parent.supportButton') }}
+            </a>
+            <a class="secondary-btn" :href="sponsorMailto()">
+              {{ t('parent.supportSponsor') }}
+            </a>
+          </div>
+        </section>
       </div>
     </main>
   </div>
@@ -771,12 +785,17 @@ const resetAll = async () => {
 .primary-btn,
 .secondary-btn,
 .danger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 12px 18px;
   border-radius: 12px;
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
   border: 2px solid transparent;
+  text-decoration: none;
+  font-family: inherit;
 }
 
 .primary-btn {

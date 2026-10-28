@@ -188,4 +188,9 @@ export const enUS: Record<MessageKey, string> = {
   'parent.resetAll': 'Delete all data',
   'parent.deleting': 'Deleting...',
   'parent.resetConfirm': 'This deletes all progress, favorites, settings and custom cards. Continue?',
+
+  'parent.supportTitle': '💙 Support the project',
+  'parent.supportText': 'TEA Kids is free for every family. Your voluntary contribution keeps the app online and funds new content.',
+  'parent.supportButton': '🌐 Support now',
+  'parent.supportSponsor': '🤝 I want to sponsor',
 };

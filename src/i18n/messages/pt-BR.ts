@@ -186,6 +186,11 @@ export const ptBR = {
   'parent.resetAll': 'Apagar todos os dados',
   'parent.deleting': 'Apagando...',
   'parent.resetConfirm': 'Isso apaga todo o progresso, favoritos, ajustes e cartões personalizados. Deseja continuar?',
+
+  'parent.supportTitle': '💙 Apoie o projeto',
+  'parent.supportText': 'O TEA Kids é gratuito para todas as famílias. Sua contribuição voluntária mantém o app no ar e financia novos conteúdos.',
+  'parent.supportButton': '🌐 Apoiar agora',
+  'parent.supportSponsor': '🤝 Quero patrocinar',
 } as const;
 
 export type MessageKey = keyof typeof ptBR;

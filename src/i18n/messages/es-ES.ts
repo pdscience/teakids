@@ -188,4 +188,9 @@ export const esES: Record<MessageKey, string> = {
   'parent.resetAll': 'Borrar todos los datos',
   'parent.deleting': 'Borrando...',
   'parent.resetConfirm': 'Esto borra todo el progreso, favoritos, ajustes y tarjetas personalizadas. ¿Quieres continuar?',
+
+  'parent.supportTitle': '💙 Apoya el proyecto',
+  'parent.supportText': 'TEA Kids es gratuito para todas las familias. Tu contribución voluntaria mantiene la app en línea y financia nuevos contenidos.',
+  'parent.supportButton': '🌐 Apoyar ahora',
+  'parent.supportSponsor': '🤝 Quiero patrocinar',
 };
