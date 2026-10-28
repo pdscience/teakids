@@ -3,6 +3,8 @@ import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppStore } from '../stores/app';
 import { useSettingsStore } from '../stores/settings';
+import { useI18n } from '../i18n/useI18n';
+import { LOCALE_LABELS, LOCALES, type Locale } from '../i18n/types';
 import { getAllConversationCategories } from '../data/conversation';
 import { getPeriodName } from '../data/routines';
 import {
@@ -21,14 +23,30 @@ import type {
 const router = useRouter();
 const store = useAppStore();
 const settings = useSettingsStore();
+const { t, locale, formatDate } = useI18n();
 
-const categories = getAllConversationCategories();
+const categories = computed(() =>
+  getAllConversationCategories(locale.value)
+);
 
-const routinePeriods: { id: RoutinePeriod; name: string }[] = [
-  { id: 'morning', name: 'Manhã' },
-  { id: 'afternoon', name: 'Tarde' },
-  { id: 'night', name: 'Noite' },
-];
+const routinePeriods = computed<{ id: RoutinePeriod; name: string }[]>(() => [
+  { id: 'morning', name: getPeriodName('morning', locale.value) },
+  { id: 'afternoon', name: getPeriodName('afternoon', locale.value) },
+  { id: 'night', name: getPeriodName('night', locale.value) },
+]);
+
+const languageFeedback = ref('');
+
+const changeLanguage = async (language: Locale) => {
+  if (settings.settings.language === language) return;
+
+  await settings.update({ language });
+  const exactVoice = await store.prepareVoice();
+
+  languageFeedback.value = exactVoice
+    ? t('parent.languageChanged')
+    : t('parent.languageUnsupported');
+};
 
 const unlocked = ref(false);
 const challenge = ref({ a: 0, b: 0 });
@@ -52,7 +70,7 @@ const unlock = () => {
     return;
   }
 
-  gateError.value = 'Resposta incorreta. Tente a nova conta.';
+  gateError.value = t('parent.gateError');
   challenge.value = {
     a: Math.floor(Math.random() * 8) + 2,
     b: Math.floor(Math.random() * 8) + 2,
@@ -79,8 +97,12 @@ const loadHistory = async () => {
 };
 
 const formatDay = (date: string): string => {
-  const [year, month, day] = date.split('-');
-  return `${day}/${month}/${year.slice(2)}`;
+  const [year, month, day] = date.split('-').map(Number);
+  return formatDate(new Date(year, month - 1, day), {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+  });
 };
 
 const groupedHistory = computed(() => {
@@ -123,7 +145,7 @@ const resetSettings = () => {
 };
 
 const testVoice = () => {
-  void store.speakText('Olá! Esta é a voz do TEA Kids.');
+  void store.speakText(t('parent.testPhrase'));
 };
 
 const newCard = ref<{
@@ -141,12 +163,12 @@ const newCard = ref<{
 const cardError = ref('');
 
 const categoryName = (id: ConversationCategory): string =>
-  categories.find((category) => category.id === id)?.name || id;
+  categories.value.find((category) => category.id === id)?.name || id;
 
 const saveCard = async () => {
   const text = newCard.value.text.trim();
   if (!text) {
-    cardError.value = 'Digite o texto do cartão.';
+    cardError.value = t('parent.cardError');
     return;
   }
 
@@ -170,7 +192,7 @@ const saveCard = async () => {
 };
 
 const deleteCard = async (id: string) => {
-  if (!window.confirm('Apagar este cartão personalizado?')) return;
+  if (!window.confirm(t('parent.deleteCardConfirm'))) return;
   await store.removeCustomCard(id);
 };
 
@@ -191,12 +213,12 @@ const activeRoutineItems = computed(() =>
 );
 
 const routinePeriodName = (period: RoutinePeriod): string =>
-  routinePeriods.find((entry) => entry.id === period)?.name || period;
+  routinePeriods.value.find((entry) => entry.id === period)?.name || period;
 
 const saveRoutineItem = async () => {
   const text = newRoutineItem.value.text.trim();
   if (!text) {
-    routineItemError.value = 'Digite o nome do item.';
+    routineItemError.value = t('parent.itemError');
     return;
   }
 
@@ -217,11 +239,7 @@ const saveRoutineItem = async () => {
 };
 
 const deleteRoutineItem = async (id: string) => {
-  if (
-    !window.confirm(
-      'Remover este item da rotina? O histórico anterior será mantido.'
-    )
-  ) {
+  if (!window.confirm(t('parent.removeItemConfirm'))) {
     return;
   }
 
@@ -254,24 +272,22 @@ const downloadExport = () => {
   link.download = `teakids-backup-${getLocalDateKey()}.json`;
   link.click();
   URL.revokeObjectURL(url);
-  exportFeedback.value = 'Backup gerado.';
+  exportFeedback.value = t('parent.backupGenerated');
 };
 
 const copyExport = async () => {
   try {
     await navigator.clipboard.writeText(buildExportJson());
-    exportFeedback.value = 'Backup copiado para a área de transferência.';
+    exportFeedback.value = t('parent.backupCopied');
   } catch {
-    exportFeedback.value = 'Não foi possível copiar o backup neste dispositivo.';
+    exportFeedback.value = t('parent.backupCopyError');
   }
 };
 
 const resetting = ref(false);
 
 const resetAll = async () => {
-  const confirmed = window.confirm(
-    'Isso apaga todo o progresso, favoritos, ajustes e cartões personalizados. Deseja continuar?'
-  );
+  const confirmed = window.confirm(t('parent.resetConfirm'));
   if (!confirmed) return;
 
   resetting.value = true;
@@ -288,40 +304,58 @@ const resetAll = async () => {
 <template>
   <div class="parent-screen">
     <header class="parent-header">
-      <button class="back-btn" aria-label="Voltar para o início" @click="goBack">
+      <button class="back-btn" :aria-label="t('parent.backAria')" @click="goBack">
         ←
       </button>
       <div>
-        <h1 class="parent-title">Área dos responsáveis</h1>
-        <p class="parent-subtitle">Ajustes, histórico e personalização</p>
+        <h1 class="parent-title">{{ t('parent.title') }}</h1>
+        <p class="parent-subtitle">{{ t('parent.subtitle') }}</p>
       </div>
     </header>
 
     <main class="parent-content">
       <section v-if="!unlocked" class="gate-card">
         <span class="gate-icon">🔒</span>
-        <h2>Confirmação para adultos</h2>
-        <p class="gate-text">Resolva a conta para abrir as configurações.</p>
+        <h2>{{ t('parent.gateTitle') }}</h2>
+        <p class="gate-text">{{ t('parent.gateText') }}</p>
         <p class="gate-question">{{ challenge.a }} + {{ challenge.b }} = ?</p>
         <input
           v-model="answer"
           class="gate-input"
           type="number"
           inputmode="numeric"
-          aria-label="Resposta da conta"
+          :aria-label="t('parent.gateAria')"
           @keyup.enter="unlock"
         />
         <p v-if="gateError" class="gate-error" role="alert">{{ gateError }}</p>
-        <button class="primary-btn" @click="unlock">Entrar</button>
-        <button class="link-btn" @click="newChallenge">Trocar conta</button>
+        <button class="primary-btn" @click="unlock">{{ t('parent.enter') }}</button>
+        <button class="link-btn" @click="newChallenge">{{ t('parent.newChallenge') }}</button>
       </section>
 
       <div v-else class="dashboard">
         <section class="panel">
-          <h2 class="panel-title">🔊 Voz e acessibilidade</h2>
+          <h2 class="panel-title">{{ t('parent.languageTitle') }}</h2>
+          <p class="panel-hint">{{ t('parent.languageHint') }}</p>
+          <div class="row-actions">
+            <button
+              v-for="option in LOCALES"
+              :key="option"
+              class="secondary-btn"
+              :class="{ 'language-active': settings.settings.language === option }"
+              :aria-pressed="settings.settings.language === option"
+              @click="changeLanguage(option)"
+            >
+              {{ LOCALE_LABELS[option] }}
+            </button>
+          </div>
+          <p v-if="languageFeedback" class="feedback">{{ languageFeedback }}</p>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel-title">{{ t('parent.voiceTitle') }}</h2>
 
           <label class="range-label" for="speech-rate">
-            <span>Velocidade da voz</span>
+            <span>{{ t('parent.speechRate') }}</span>
             <span class="range-value">{{ settings.settings.speechRate.toFixed(2) }}</span>
           </label>
           <input
@@ -336,7 +370,7 @@ const resetAll = async () => {
           />
 
           <label class="range-label" for="speech-pitch">
-            <span>Tom da voz</span>
+            <span>{{ t('parent.speechPitch') }}</span>
             <span class="range-value">{{ settings.settings.speechPitch.toFixed(2) }}</span>
           </label>
           <input
@@ -351,7 +385,7 @@ const resetAll = async () => {
           />
 
           <label class="switch-row">
-            <span>Som da voz</span>
+            <span>{{ t('parent.sound') }}</span>
             <input
               type="checkbox"
               :checked="settings.settings.soundEnabled"
@@ -360,7 +394,7 @@ const resetAll = async () => {
           </label>
 
           <label class="switch-row">
-            <span>Reduzir animações</span>
+            <span>{{ t('parent.reduceMotion') }}</span>
             <input
               type="checkbox"
               :checked="settings.settings.reduceMotion"
@@ -369,7 +403,7 @@ const resetAll = async () => {
           </label>
 
           <label class="switch-row">
-            <span>Texto maior</span>
+            <span>{{ t('parent.largeText') }}</span>
             <input
               type="checkbox"
               :checked="settings.settings.largeText"
@@ -378,7 +412,7 @@ const resetAll = async () => {
           </label>
 
           <label class="switch-row">
-            <span>Alto contraste</span>
+            <span>{{ t('parent.highContrast') }}</span>
             <input
               type="checkbox"
               :checked="settings.settings.highContrast"
@@ -387,16 +421,16 @@ const resetAll = async () => {
           </label>
 
           <div class="row-actions">
-            <button class="secondary-btn" @click="testVoice">Testar voz</button>
+            <button class="secondary-btn" @click="testVoice">{{ t('parent.testVoice') }}</button>
             <button class="secondary-btn" @click="resetSettings">
-              Restaurar ajustes
+              {{ t('parent.resetSettings') }}
             </button>
           </div>
         </section>
 
         <section class="panel">
-          <h2 class="panel-title">📅 Histórico dos últimos 7 dias</h2>
-          <p v-if="historyLoading" class="panel-hint">Carregando histórico...</p>
+          <h2 class="panel-title">{{ t('parent.historyTitle') }}</h2>
+          <p v-if="historyLoading" class="panel-hint">{{ t('parent.historyLoading') }}</p>
           <div v-else class="history-list">
             <div v-for="day in groupedHistory" :key="day.date" class="history-day">
               <div class="history-date">{{ day.label }}</div>
@@ -406,7 +440,7 @@ const resetAll = async () => {
                   :key="entry.period"
                   class="history-period"
                 >
-                  <span>{{ getPeriodName(entry.period) }}</span>
+                  <span>{{ getPeriodName(entry.period, locale) }}</span>
                   <span
                     class="history-count"
                     :class="{ complete: entry.completedCount === entry.totalCount }"
@@ -420,14 +454,14 @@ const resetAll = async () => {
         </section>
 
         <section class="panel">
-          <h2 class="panel-title">📅 Rotinas personalizadas</h2>
+          <h2 class="panel-title">{{ t('parent.customRoutinesTitle') }}</h2>
           <p class="panel-hint">
-            Adicione atividades extras. Os itens padrão continuam iguais.
+            {{ t('parent.customRoutinesHint') }}
           </p>
 
           <form class="card-form" @submit.prevent="saveRoutineItem">
             <label class="field">
-              <span>Período</span>
+              <span>{{ t('common.period') }}</span>
               <select v-model="newRoutineItem.period">
                 <option
                   v-for="period in routinePeriods"
@@ -440,22 +474,22 @@ const resetAll = async () => {
             </label>
 
             <label class="field">
-              <span>Emoji</span>
+              <span>{{ t('common.emoji') }}</span>
               <input
                 v-model="newRoutineItem.icon"
                 type="text"
                 maxlength="4"
-                aria-label="Emoji do item da rotina"
+                :aria-label="t('parent.itemEmojiAria')"
               />
             </label>
 
             <label class="field field-wide">
-              <span>Nome do item</span>
+              <span>{{ t('parent.itemName') }}</span>
               <input
                 v-model="newRoutineItem.text"
                 type="text"
                 maxlength="60"
-                placeholder="Ex.: Tomar remédio"
+                :placeholder="t('parent.itemPlaceholder')"
               />
             </label>
 
@@ -463,7 +497,7 @@ const resetAll = async () => {
               {{ routineItemError }}
             </p>
 
-            <button class="primary-btn" type="submit">Adicionar item</button>
+            <button class="primary-btn" type="submit">{{ t('parent.addItem') }}</button>
           </form>
 
           <ul v-if="activeRoutineItems.length" class="custom-list">
@@ -478,22 +512,22 @@ const resetAll = async () => {
                 {{ routinePeriodName(item.period) }}
               </span>
               <button class="delete-btn" @click="deleteRoutineItem(item.id)">
-                Remover
+                {{ t('common.remove') }}
               </button>
             </li>
           </ul>
-          <p v-else class="panel-hint">Nenhum item personalizado ainda.</p>
+          <p v-else class="panel-hint">{{ t('parent.noCustomItems') }}</p>
         </section>
 
         <section class="panel">
-          <h2 class="panel-title">🃏 Cartões personalizados</h2>
+          <h2 class="panel-title">{{ t('parent.customCardsTitle') }}</h2>
           <p class="panel-hint">
-            Crie cartões extras de comunicação para o seu filho.
+            {{ t('parent.customCardsHint') }}
           </p>
 
           <form class="card-form" @submit.prevent="saveCard">
             <label class="field">
-              <span>Categoria</span>
+              <span>{{ t('common.category') }}</span>
               <select v-model="newCard.category">
                 <option
                   v-for="category in categories"
@@ -506,33 +540,33 @@ const resetAll = async () => {
             </label>
 
             <label class="field">
-              <span>Emoji</span>
+              <span>{{ t('common.emoji') }}</span>
               <input
                 v-model="newCard.icon"
                 type="text"
                 maxlength="4"
-                aria-label="Emoji do cartão"
+                :aria-label="t('parent.cardEmojiAria')"
               />
             </label>
 
             <label class="field field-wide">
-              <span>Texto do cartão</span>
+              <span>{{ t('parent.cardText') }}</span>
               <input
                 v-model="newCard.text"
                 type="text"
                 maxlength="60"
-                placeholder="Ex.: Quero meu brinquedo"
+                :placeholder="t('parent.cardPlaceholder')"
               />
             </label>
 
             <label class="field">
-              <span>Cor</span>
+              <span>{{ t('common.color') }}</span>
               <input v-model="newCard.color" type="color" />
             </label>
 
             <p v-if="cardError" class="gate-error" role="alert">{{ cardError }}</p>
 
-            <button class="primary-btn" type="submit">Adicionar cartão</button>
+            <button class="primary-btn" type="submit">{{ t('parent.addCard') }}</button>
           </form>
 
           <ul v-if="store.customCards.length" class="custom-list">
@@ -541,27 +575,27 @@ const resetAll = async () => {
               <span class="custom-text">{{ card.text }}</span>
               <span class="custom-category">{{ categoryName(card.category) }}</span>
               <button class="delete-btn" @click="deleteCard(card.id)">
-                Apagar
+                {{ t('common.delete') }}
               </button>
             </li>
           </ul>
-          <p v-else class="panel-hint">Nenhum cartão personalizado ainda.</p>
+          <p v-else class="panel-hint">{{ t('parent.noCustomCards') }}</p>
         </section>
 
         <section class="panel">
-          <h2 class="panel-title">💾 Dados</h2>
+          <h2 class="panel-title">{{ t('parent.dataTitle') }}</h2>
           <div class="row-actions">
             <button class="secondary-btn" @click="downloadExport">
-              Baixar backup
+              {{ t('parent.downloadBackup') }}
             </button>
             <button class="secondary-btn" @click="copyExport">
-              Copiar backup
+              {{ t('parent.copyBackup') }}
             </button>
           </div>
           <p v-if="exportFeedback" class="feedback">{{ exportFeedback }}</p>
 
           <button class="danger-btn" :disabled="resetting" @click="resetAll">
-            {{ resetting ? 'Apagando...' : 'Apagar todos os dados' }}
+            {{ resetting ? t('parent.deleting') : t('parent.resetAll') }}
           </button>
         </section>
       </div>
@@ -908,5 +942,11 @@ const resetAll = async () => {
   color: #07D407;
   font-size: 13px;
   margin-top: 8px;
+}
+
+.language-active {
+  background: #4D94FF;
+  border-color: #4D94FF;
+  color: white;
 }
 </style>
