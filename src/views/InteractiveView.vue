@@ -2,6 +2,7 @@
 import { computed, ref, watch, onUnmounted } from 'vue';
 import { useAppStore } from '../stores/app';
 import { getInteractiveItems, getAllInteractiveCategories } from '../data/interactive';
+import { useI18n } from '../i18n/useI18n';
 import type { InteractiveCategory, InteractiveItem } from '../types/models';
 
 let quizTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -14,10 +15,14 @@ const clearQuizTimeout = () => {
 };
 
 const store = useAppStore();
-const categories = getAllInteractiveCategories();
+const { t, locale } = useI18n();
+
+const categories = computed(() => getAllInteractiveCategories(locale.value));
 
 const currentCategory = computed(() => store.currentInteractiveTab as InteractiveCategory);
-const interactiveItems = computed(() => getInteractiveItems(currentCategory.value));
+const interactiveItems = computed(() =>
+  getInteractiveItems(currentCategory.value, locale.value)
+);
 
 const categoryColors: Record<string, string> = {
   shapes: '#4D94FF', colors: '#B24BF3', animals: '#00C853',
@@ -60,10 +65,6 @@ const toggleQuizMode = () => {
   }
 };
 
-watch(currentCategory, () => {
-  if (quizMode.value) resetQuiz();
-});
-
 const resetQuiz = () => {
   quizScore.value = 0;
   quizTotal.value = 0;
@@ -73,8 +74,12 @@ const resetQuiz = () => {
   generateQuizQuestion();
 };
 
+watch([currentCategory, locale], () => {
+  if (quizMode.value) resetQuiz();
+});
+
 const generateQuizQuestion = () => {
-  const items = getInteractiveItems(currentCategory.value);
+  const items = getInteractiveItems(currentCategory.value, locale.value);
   if (items.length < 2) return;
   quizAnswered.value = null;
   quizAnsweredIndex.value = null;
@@ -96,7 +101,13 @@ const generateQuizQuestion = () => {
   // Ask TTS
   clearQuizTimeout();
   quizTimeoutId = setTimeout(() => {
-    store.speakText(`Qual é este ${currentCategory.value === 'shapes' ? 'formato' : 'item'}?`);
+    store.speakText(
+      t(
+        currentCategory.value === 'shapes'
+          ? 'interactive.askShapes'
+          : 'interactive.askItem'
+      )
+    );
     quizTimeoutId = null;
   }, 300);
 };
@@ -106,15 +117,17 @@ const answerQuiz = (option: InteractiveItem, index: number) => {
   quizTotal.value++;
   quizAnsweredIndex.value = index;
 
-  if (option.name === quizCurrentItem.value?.name) {
+  if (option.id === quizCurrentItem.value?.id) {
     quizAnswered.value = 'correct';
     quizScore.value++;
     store.incrementQuizStreak();
-    store.speakText(`Correto! ${option.name}`);
+    store.speakText(t('interactive.correct', { name: option.name }));
   } else {
     quizAnswered.value = 'wrong';
     store.resetQuizStreak();
-    store.speakText(`Era ${quizCurrentItem.value?.name}`);
+    store.speakText(
+      t('interactive.wrong', { name: quizCurrentItem.value?.name ?? '' })
+    );
   }
 
   clearQuizTimeout();
@@ -134,8 +147,8 @@ onUnmounted(() => {
     <header class="screen-header">
       <div class="header-row">
         <div>
-          <h1 class="screen-title">Interação</h1>
-          <p class="screen-subtitle">Aprenda formas, cores e muito mais</p>
+          <h1 class="screen-title">{{ t('interactive.title') }}</h1>
+          <p class="screen-subtitle">{{ t('interactive.subtitle') }}</p>
         </div>
         <button
           class="quiz-toggle"
@@ -143,20 +156,20 @@ onUnmounted(() => {
           :aria-pressed="quizMode"
           @click="toggleQuizMode"
         >
-          🎯 {{ quizMode ? 'Quiz ON' : 'Quiz' }}
+          🎯 {{ quizMode ? t('interactive.quizOn') : t('interactive.quiz') }}
         </button>
       </div>
     </header>
 
     <!-- Category Grid -->
-    <div class="category-grid" role="group" aria-label="Categorias de interação">
+    <div class="category-grid" role="group" :aria-label="t('interactive.quizGroupAria')">
       <button
         v-for="category in categories"
         :key="category.id"
         class="category-tab"
         :class="{ active: currentCategory === category.id }"
         :aria-pressed="currentCategory === category.id"
-        :aria-label="`Categoria ${category.name}`"
+        :aria-label="t('interactive.categoryAria', { name: category.name })"
         :style="{ 
           backgroundColor: currentCategory === category.id ? category.color : '#1E2235',
           borderColor: currentCategory === category.id ? category.color : '#2A2F45'
@@ -188,18 +201,18 @@ onUnmounted(() => {
         <div class="quiz-icon-wrapper" :style="{ borderColor: tabColor + '80' }">
           <span class="quiz-icon">{{ quizCurrentItem.icon }}</span>
         </div>
-        <p class="quiz-prompt">Qual é este?</p>
+        <p class="quiz-prompt">{{ t('interactive.question') }}</p>
       </div>
 
       <!-- Options -->
       <div class="quiz-options">
         <button
           v-for="(option, index) in quizOptions"
-          :key="index"
+          :key="option.id"
           class="quiz-option"
           :class="{
-            correct: quizAnswered && option.name === quizCurrentItem?.name,
-            wrong:   quizAnswered === 'wrong' && quizAnsweredIndex === index && option.name !== quizCurrentItem?.name,
+            correct: quizAnswered && option.id === quizCurrentItem?.id,
+            wrong: quizAnswered === 'wrong' && quizAnsweredIndex === index && option.id !== quizCurrentItem?.id,
             disabled: !!quizAnswered
           }"
           :aria-label="option.name"
@@ -208,32 +221,32 @@ onUnmounted(() => {
         >
           <span class="option-icon">{{ option.icon }}</span>
           <span class="option-name">{{ option.name }}</span>
-          <span v-if="quizAnswered && option.name === quizCurrentItem?.name" class="option-result">✅</span>
+          <span v-if="quizAnswered && option.id === quizCurrentItem?.id" class="option-result">✅</span>
           <span v-else-if="quizAnswered === 'wrong' && quizAnsweredIndex === index" class="option-result">❌</span>
         </button>
       </div>
 
-      <button class="quiz-skip" @click="generateQuizQuestion">↪ Pular</button>
+      <button class="quiz-skip" @click="generateQuizQuestion">{{ t('interactive.skip') }}</button>
     </main>
 
     <!-- ===== NORMAL MODE ===== -->
     <main v-else class="interactive-content">
       <div class="items-grid">
         <button
-          v-for="(item, index) in interactiveItems"
-          :key="index"
+          v-for="item in interactiveItems"
+          :key="item.id"
           class="interactive-card"
-          :aria-label="`Ouvir: ${item.name}`"
+          :aria-label="t('common.listenAria', { text: item.name })"
           :style="{ borderColor: parseColor(item.color) + '99' }"
           @click="speak(item.name)"
         >
           <span 
-            v-if="currentCategory === 'shapes' && item.name !== 'Trapézio'"
+            v-if="currentCategory === 'shapes' && item.id !== 'interactive:shapes:trapezio'"
             class="card-icon"
             :style="{ color: parseColor(item.color) }"
           >{{ item.icon }}</span>
           <svg
-            v-else-if="currentCategory === 'shapes' && item.name === 'Trapézio'"
+            v-else-if="currentCategory === 'shapes' && item.id === 'interactive:shapes:trapezio'"
             class="card-icon card-icon-svg"
             viewBox="0 0 100 80"
             :fill="parseColor(item.color)"

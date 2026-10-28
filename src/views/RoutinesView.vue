@@ -3,14 +3,16 @@ import { computed, ref, watch, onUnmounted } from 'vue';
 import { useAppStore } from '../stores/app';
 import type { AchievementKey } from '../stores/app';
 import { getPeriodName } from '../data/routines';
+import { useI18n } from '../i18n/useI18n';
 
 const store = useAppStore();
+const { t, locale, formatDate } = useI18n();
 
-const periods = [
-  { id: 'morning' as const, name: '🌅 Manhã', color: '#FF6B35', achievement: 'morningRoutine' as AchievementKey },
-  { id: 'afternoon' as const, name: '☀️ Tarde', color: '#FFC107', achievement: 'afternoonRoutine' as AchievementKey },
-  { id: 'night' as const, name: '🌙 Noite', color: '#7B68EE', achievement: 'nightRoutine' as AchievementKey },
-];
+const periods = computed(() => [
+  { id: 'morning' as const, name: t('routines.tabMorning'), color: '#FF6B35', achievement: 'morningRoutine' as AchievementKey },
+  { id: 'afternoon' as const, name: t('routines.tabAfternoon'), color: '#FFC107', achievement: 'afternoonRoutine' as AchievementKey },
+  { id: 'night' as const, name: t('routines.tabNight'), color: '#7B68EE', achievement: 'nightRoutine' as AchievementKey },
+]);
 
 const confettiItems = [
   { id: 0, color: '#FF6B35', left: 12.5, delay: 0.3, duration: 1.8, size: 14 },
@@ -52,13 +54,13 @@ const routineItems = computed(() =>
 const progress = computed(() => store.getRoutineProgressData(currentPeriod.value));
 
 const periodColor = computed(() => {
-  const period = periods.find(p => p.id === currentPeriod.value);
+  const period = periods.value.find((item) => item.id === currentPeriod.value);
   return period?.color || '#4D94FF';
 });
 
 const todayLabel = computed(() => {
   const [year, month, day] = store.routineDate.split('-').map(Number);
-  return new Date(year, month - 1, day).toLocaleDateString('pt-BR');
+  return formatDate(new Date(year, month - 1, day));
 });
 
 const setPeriod = (period: 'morning' | 'afternoon' | 'night') => {
@@ -93,9 +95,9 @@ watch(
   (isNowCompleted, wasCompleted) => {
     if (isNowCompleted && !wasCompleted) {
       showCelebration.value = true;
-      const period = periods.find(p => p.id === currentPeriod.value);
+      const period = periods.value.find((p) => p.id === currentPeriod.value);
       if (period) store.unlockAchievement(period.achievement);
-      store.speakText('Parabéns! Você completou a rotina!');
+      store.speakText(t('routines.speakCongrats'));
       if (celebrationTimeoutId !== null) clearTimeout(celebrationTimeoutId);
       celebrationTimeoutId = setTimeout(() => { 
         showCelebration.value = false; 
@@ -137,8 +139,8 @@ const toggleItem = (index: number) => {
         ></div>
         <div class="celebration-badge">
           <span class="celebration-emoji">🎉</span>
-          <p class="celebration-text">Rotina Completa!</p>
-          <p class="celebration-sub">Parabéns! Continue assim! 🌟</p>
+          <p class="celebration-text">{{ t('routines.celebrationTitle') }}</p>
+          <p class="celebration-sub">{{ t('routines.celebrationSub') }}</p>
         </div>
       </div>
     </Transition>
@@ -148,11 +150,13 @@ const toggleItem = (index: number) => {
       <div v-if="showClearConfirm" class="modal-overlay" @click.self="cancelClear">
         <div class="modal-card">
           <span class="modal-icon">🗑️</span>
-          <p class="modal-title">Limpar Progresso?</p>
-          <p class="modal-text">Deseja limpar o progresso de hoje da rotina "{{ getPeriodName(currentPeriod) }}"?</p>
+          <p class="modal-title">{{ t('routines.clearTitle') }}</p>
+          <p class="modal-text">
+            {{ t('routines.clearText', { period: getPeriodName(currentPeriod, locale) }) }}
+          </p>
           <div class="modal-actions">
-            <button class="modal-btn cancel" @click="cancelClear">Cancelar</button>
-            <button class="modal-btn confirm" @click="confirmClear">Limpar</button>
+            <button class="modal-btn cancel" @click="cancelClear">{{ t('common.cancel') }}</button>
+            <button class="modal-btn confirm" @click="confirmClear">{{ t('common.clear') }}</button>
           </div>
         </div>
       </div>
@@ -160,11 +164,11 @@ const toggleItem = (index: number) => {
 
     <header class="screen-header">
       <div class="header-top">
-        <h1 class="screen-title">Rotinas</h1>
-        <button class="clear-btn" @click="clearProgress" aria-label="Limpar progresso da rotina">🗑️</button>
+        <h1 class="screen-title">{{ t('routines.title') }}</h1>
+        <button class="clear-btn" @click="clearProgress" :aria-label="t('routines.clearAria')">🗑️</button>
       </div>
-      <p class="screen-subtitle">Acompanhe suas atividades de hoje</p>
-      <p class="today-label">Hoje, {{ todayLabel }}</p>
+      <p class="screen-subtitle">{{ t('routines.subtitle') }}</p>
+      <p class="today-label">{{ t('routines.today', { date: todayLabel }) }}</p>
     </header>
 
     <!-- Period Tabs -->
@@ -189,7 +193,7 @@ const toggleItem = (index: number) => {
     <div class="progress-section">
       <div class="progress-card" :style="{ borderColor: periodColor + '40' }">
         <div class="progress-header">
-          <span class="progress-label">Progresso:</span>
+          <span class="progress-label">{{ t('routines.progress') }}</span>
           <span class="progress-value" :style="{ color: periodColor }">{{ progress.progressText }}</span>
         </div>
         <div class="progress-bar-bg">
@@ -201,7 +205,7 @@ const toggleItem = (index: number) => {
             }"
           ></div>
         </div>
-        <p v-if="progress.isCompleted" class="completed-msg">🌟 Incrível! Tudo feito!</p>
+        <p v-if="progress.isCompleted" class="completed-msg">{{ t('routines.completed') }}</p>
       </div>
     </div>
 
@@ -219,7 +223,7 @@ const toggleItem = (index: number) => {
         >
           <button
             class="item-speak"
-            :aria-label="`Ouvir: ${item.text}`"
+            :aria-label="t('common.listenAria', { text: item.text })"
             @click="speak(item.text)"
           >
             <span class="item-icon">{{ item.icon }}</span>
@@ -234,7 +238,14 @@ const toggleItem = (index: number) => {
             class="checkbox"
             :class="{ checked: progress.completedItems[index] }"
             :aria-pressed="progress.completedItems[index]"
-            :aria-label="`Marcar ${item.text} como ${progress.completedItems[index] ? 'não concluído' : 'concluído'}`"
+            :aria-label="
+              t(
+                progress.completedItems[index]
+                  ? 'routines.markUndone'
+                  : 'routines.markDone',
+                { item: item.text }
+              )
+            "
             @click="toggleItem(index)"
           >
             <span v-if="progress.completedItems[index]">✓</span>
