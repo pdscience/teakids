@@ -12,10 +12,16 @@ describe('support', () => {
     expect(SUPPORT_EMAIL).toMatch(/^[^@\s]+@[^@\s]+\.[^@\s]+$/);
   });
 
-  it('ships a landing page with a configurable payment link', () => {
+  it('ships a landing page with a configured payment link', () => {
     expect(landingPage).toContain('CONFIG');
     expect(landingPage).toContain('paymentLink');
-    expect(landingPage).toContain('COLE_AQUI_O_LINK_DE_PAGAMENTO');
+    expect(landingPage).toContain('https://link.mercadopago.com.br/aplicativoteakids');
+    expect(landingPage).not.toContain('COLE_AQUI_O_LINK_DE_PAGAMENTO');
+    expect(landingPage).not.toContain('chave-pix-configurar');
+  });
+
+  it('keeps the app contact email in sync with the landing page', () => {
+    expect(landingPage).toContain(`email: '${SUPPORT_EMAIL}'`);
   });
 
   it('offers the suggested contribution amounts', () => {

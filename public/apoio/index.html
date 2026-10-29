@@ -563,7 +563,8 @@
         <div class="section-header">
           <h2>Escolha um valor de apoio</h2>
           <p class="lead">
-            Contribuições únicas ou mensais. Os botões abaixo abrem o checkout seguro do provedor.
+            Escolha uma sugestão de valor e conclua no checkout seguro do Mercado Pago (Pix ou cartão).
+            O valor final é confirmado na próxima tela, onde você também pode digitar outro valor.
           </p>
         </div>
 
@@ -593,8 +594,11 @@
         </div>
 
         <div class="actions" style="justify-content: flex-start; margin-top: 14px;">
-          <a class="btn btn-secondary" id="other-amount" href="#">Outro valor personalizado</a>
+          <a class="btn btn-secondary" id="other-amount" href="#">Outro valor</a>
         </div>
+        <p style="margin-top: 12px; color: var(--muted); font-size: 13px">
+          Prefere não usar o Mercado Pago? Contribua via Pix direto na seção de patrocínio, sem taxa.
+        </p>
       </section>
 
       <section id="como-ajuda" class="fade-in">
@@ -662,12 +666,12 @@
               <p style="color: var(--muted); font-size: 14px">
                 Prefere Pix direto? Utilize a chave abaixo e envie o comprovante por e-mail para emissão de recibo.
               </p>
-              <code id="pix-key">chave-pix-configurar</code>
+              <code id="pix-key">portodatascience@gmail.com</code>
               <button class="btn btn-secondary" id="copy-pix" type="button" style="width: 100%;">Copiar chave Pix</button>
             </div>
             <p style="margin-top: 14px; color: var(--muted); font-size: 13px">
-              E-mail: <a class="link" id="support-email" href="#">contato@teakids.app</a><br />
-              WhatsApp: <span id="support-whatsapp">configure o número</span>
+              E-mail: <a class="link" id="support-email" href="#">portodatascience@gmail.com</a><br />
+              WhatsApp: <span id="support-whatsapp">+55 61 99691-1526</span>
             </p>
           </div>
         </div>
@@ -725,36 +729,32 @@
       const buildPaymentUrl = (amount) => {
         if (!isConfigured(CONFIG.paymentLink)) return null;
         const url = new URL(CONFIG.paymentLink, window.location.href);
-        url.searchParams.set('amount', String(amount));
-        url.searchParams.set('description', 'Apoio ao TEA Kids');
+        if (amount) {
+          url.searchParams.set('amount', String(amount));
+          url.searchParams.set('description', 'Apoio ao TEA Kids');
+        }
         return url.toString();
       };
 
-      const openPayment = (amount, event) => {
-        const url = buildPaymentUrl(amount);
-        if (!url) {
-          event.preventDefault();
-          notice.classList.add('visible');
-          notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          return;
-        }
-        window.open(url, '_blank', 'noopener');
+      const showNotice = (event) => {
+        event.preventDefault();
+        notice.classList.add('visible');
+        notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
       };
 
-      amounts.forEach((button) => {
-        button.addEventListener('click', (event) => openPayment(button.dataset.amount, event));
-      });
-
-      document.getElementById('other-amount').addEventListener('click', (event) => {
-        const url = buildPaymentUrl('other');
+      const bindPayment = (element, amount) => {
+        const url = buildPaymentUrl(amount);
         if (!url) {
-          event.preventDefault();
-          notice.classList.add('visible');
-          notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.addEventListener('click', showNotice);
           return;
         }
-        window.open(url, '_blank', 'noopener');
-      });
+        element.href = url;
+        element.target = '_blank';
+        element.rel = 'noopener';
+      };
+
+      amounts.forEach((card) => bindPayment(card, card.dataset.amount));
+      bindPayment(document.getElementById('other-amount'), null);
 
       const sponsorLink = () =>
         `mailto:${CONFIG.email}?subject=${encodeURIComponent('Quero patrocinar o TEA Kids')}`;
@@ -769,7 +769,8 @@
 
       const whatsappNode = document.getElementById('support-whatsapp');
       const whatsappNumber = String(CONFIG.whatsapp).replace(/\D/g, '');
-      whatsappNode.innerHTML = `<a class="link" href="https://wa.me/${whatsappNumber}" target="_blank" rel="noopener">${CONFIG.whatsapp}</a>`;
+      const whatsappLabel = whatsappNumber.replace(/^55(\d{2})(\d{5})(\d{4})$/, '+55 ($1) $2-$3');
+      whatsappNode.innerHTML = `<a class="link" href="https://wa.me/${whatsappNumber}" target="_blank" rel="noopener">${whatsappLabel}</a>`;
 
       const pixNode = document.getElementById('pix-key');
       pixNode.textContent = CONFIG.pixKey;

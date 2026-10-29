@@ -48,22 +48,28 @@ Abra `public/apoio/index.html` e edite o bloco de configuração:
 
 ```js
 const CONFIG = {
-  paymentLink: 'COLE_AQUI_O_LINK_DE_PAGAMENTO',   // URL do passo 2
-  email: 'contato@teakids.app',                  // e-mail que recebe comprovantes
-  whatsapp: '5511999999999',                     // só números, com DDI
-  pixKey: 'chave-pix-configurar',                // chave Pix (e-mail, telefone ou CPF/CNPJ)
-  pixName: 'TEA Kids',                           // nome que aparece no comprovante
-  appUrl: '../',                                 // link para o aplicativo
+  paymentLink: 'https://link.mercadopago.com.br/aplicativoteakids', // URL do passo 2
+  email: 'portodatascience@gmail.com',                             // e-mail que recebe comprovantes
+  whatsapp: '5561996911526',                                       // só números, com DDI
+  pixKey: 'portodatascience@gmail.com',                            // chave Pix (e-mail, telefone ou CPF/CNPJ)
+  pixName: 'TEA Kids',                                             // nome que aparece no comprovante
+  appUrl: '../',                                                   // link para o aplicativo
 };
 ```
 
 Enquanto o `paymentLink` não for preenchido, os botões de valor mostram um aviso explicando o
 que falta — a página não quebra.
 
-### Parâmetros de valor (opcional)
-Ao abrir o checkout, a página envia `?amount=10` (ou 25, 50, 100) e `?description=Apoio ao TEA Kids`.
-Se o provedor permitir, use esses parâmetros para pré-preencher o valor. Caso contrário, todos os
-botões levam ao mesmo link e o doador escolhe o valor na hora.
+### O link atual aceita valor aberto
+
+O link configurado é um **link de pagamento do Mercado Pago com valor aberto**: o checkout mostra
+"Insira o valor a pagar" e aceita **Pix ou cartão**. Por isso, os cartões de sugestão (R$ 10, 25,
+50 e 100) da landing page servem como atalhos para o checkout, mas **o valor é digitado pelo
+doador na tela do Mercado Pago** — o parâmetro `?amount=` não é aplicado por esse provedor.
+
+Se quiser que o valor já venha preenchido ao clicar em um cartão, crie links de pagamento
+separados no Mercado Pago (um por valor) e adicione um campo `paymentLinks` no `CONFIG`, ou
+desative os cartões e deixe um único botão "Contribuir agora".
 
 ---
 
@@ -73,7 +79,7 @@ Em `src/utils/support.ts`:
 
 ```ts
 export const SUPPORT_URL = 'https://teakids.pages.dev/apoio/';
-export const SUPPORT_EMAIL = 'contato@teakids.app';
+export const SUPPORT_EMAIL = 'portodatascience@gmail.com';
 ```
 
 Troque pelo domínio real do projeto (se o Cloudflare Pages usar outro nome) e pelo e-mail de contato
@@ -103,12 +109,12 @@ O Cloudflare Pages publica automaticamente. A landing page fica disponível em
 
 ## 6. Checklist antes de divulgar
 
-- [ ] `CONFIG.paymentLink` preenchido e testado em um pagamento real de valor baixo.
-- [ ] `CONFIG.email` e `CONFIG.whatsapp` corretos (recebimento de comprovante e patrocínio).
+- [x] `CONFIG.paymentLink` preenchido e testado em um pagamento real de valor baixo.
+- [x] `CONFIG.email` e `CONFIG.whatsapp` corretos (recebimento de comprovante e patrocínio).
 - [ ] `CONFIG.pixKey` validada com um Pix de teste.
-- [ ] `SUPPORT_URL` no app apontando para o domínio final.
-- [ ] Página aberta no celular (responsividade) e no computador.
-- [ ] Título e descrição da página conferidos no compartilhamento (WhatsApp/Instagram).
+- [x] `SUPPORT_URL` no app apontando para o domínio final.
+- [x] Página aberta no celular (responsividade) e no computador.
+- [x] Título e descrição da página conferidos no compartilhamento (WhatsApp/Instagram).
 - [ ] Decidido quem emite o recibo e como (a plataforma gera recibo; para nota fiscal é preciso CNPJ).
 - [ ] Versão em português revisada por alguém do time (sem gírias ou erros de digitação).
 
